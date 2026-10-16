@@ -37,18 +37,20 @@ gpu_hours()"""),
     ("code", """!mkdir -p /content/m0 && unzip -oq /content/drive/MyDrive/timeflight/m0_inputs.zip -d /content/m0 && ls /content/m0
 !bash /content/TimeFlight/colab/start_servers.sh
 !python scripts/validate_workflow.py workflows/api/m0_union_depth_api.json"""),
-    ("md", """## Step A: drafts at 512×288, 49 frames
-Run **one** cell first. If it fails on the asset upload, add `--comfy-input-dir /content/ComfyUI/input`."""),
+    ("md", """## Step A: drafts at 576×320, 49 frames
+Run **one** cell first. Each run cell stops with an AssertionError if a variant failed; the ComfyUI error is printed above it. If it fails on the asset upload, add `--comfy-input-dir /content/ComfyUI/input`."""),
     ("code", """os.environ["COMFY_BASE_URL"] = "http://127.0.0.1:8189"
 RUN = "python app/run_m0.py --renders /content/m0 --results /content/m0_results"
 !{RUN} --step A --prompt past_1519 --strength 1.0 --mode inverse
-gpu_hours()"""),
+gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above before running more'"""),
     ("code", """!{RUN} --step A   # the remaining 11 variants (completed ones are skipped)
+assert _exit_code == 0, "some variants failed"
 !python scripts/metrics.py --results /content/m0_results --renders /content/m0
 gpu_hours()"""),
-    ("md", """## Step B: 960×544, 121 frames, best setting from A
+    ("md", """## Step B: 1024×576, 121 frames, best setting from A
 Edit `--strength` and `--mode` to the winner of step A."""),
     ("code", """!{RUN} --step B --strength 1.0 --mode inverse
+assert _exit_code == 0, "some variants failed"
 !python scripts/metrics.py --results /content/m0_results --renders /content/m0
 gpu_hours()"""),
     ("md", "## Step C: 241 frames (can we avoid chaining?)"),
@@ -57,7 +59,7 @@ gpu_hours()"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/
-!grep -E "Prompt executed|Error|error" /content/comfy.log | tail -20
+!grep -E -A3 "Prompt executed|Error|error" /content/comfy.log | tail -40
 gpu_hours()"""),
 ]
 

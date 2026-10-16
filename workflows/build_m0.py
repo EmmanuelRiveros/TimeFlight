@@ -44,7 +44,7 @@ def out(node_id: str, index: int = 0) -> list:
     return [node_id, index]
 
 
-def build(width: int = 512, height: int = 288, length: int = 49, fps: float = 24.0,
+def build(width: int = 576, height: int = 320, length: int = 49, fps: float = 24.0,
           seed: int = 42, guide_strength: float = 1.0, lora_strength: float = 1.0) -> dict:
     g = Graph()
     unet = g.add("UNETLoader", "transformer", unet_name=MODEL_FILES["transformer"], weight_dtype="default")

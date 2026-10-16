@@ -41,8 +41,8 @@ Budget: about 40 h total (Oct 16–29). Hero demo: Tenochtitlan (1519) → Zóca
 ## Compute
 - Code is written locally on Windows (RTX 3070 Ti 8 GB, enough for Blender, not for LTX).
   All diffusion runs on a Colab A100.
-- **Test small first**: 49 frames at 512×288 before 121 frames at 960×544.
-- LTX constraints: frames % 8 == 1; width and height divisible by 32; no NVFP4 on A100.
+- **Test small first**: 49 frames at 576×320 before 121 frames at 1024×576.
+- LTX constraints: frames % 8 == 1; width and height divisible by 32 (64 with the ref0.5 Union IC-LoRA, see decisions.md); no NVFP4 on A100.
 - **M0 hard cap: 10 GPU hours.** Log time and units per run in docs/smoke_test.md.
 - Render Blender passes (depth, RGB, edges) locally, never on Colab.
 

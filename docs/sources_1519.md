@@ -1,6 +1,6 @@
 # Tenochtitlan 1519: sources for the era geometry and narration
 
-Status: **draft for author review** (2026-10-16). Nothing below is modeled until the author checks it.
+Status: **open questions resolved by the author** (2026-10-16). Facts below feed the illustrative proxies.
 License checks were made against the holding institution's own item page, unless marked otherwise.
 
 Rule of thumb:
@@ -60,8 +60,8 @@ All were published before 1931 and their authors and translators died before 195
 | Causeway bridges | Gaps with removable wooden bridges so canoes could pass | C1; Thomas 1994 via D1 | High |
 | City western edge | Roughly at present-day Avenida Bucareli | D1 (Tenochtitlan article) | Medium; verify with a scholarly source |
 | Tlacopan causeway route in the modern city | Thought to follow Calle Tacuba → Av. Hidalgo → Puente de Alvarado → Calzada México-Tacuba | Common claim, **not yet sourced** | Low until sourced |
-| Sacred precinct | Walled quadrangle (the *coatepantli*) about **400 × 440 m**, about 16–17 ha; about 45 public buildings (Sahagún lists 78) | Size: author-supplied 2026-10-16 (replaces the "about 500 m" figure in D1); building count: Coe 2008 via D1 | Medium; the size has no cited publication yet |
-| Templo Mayor (final stage, phase VII, c. 1487–1519) | Base about 100 × 80 m; stepped pyramid about **30 m** high; **45–60 m** total with the twin shrines on top; four stepped terraces; twin stairways facing **west**; twin shrines with **Tlaloc north**, **Huitzilopochtli south** | Heights and phase: author-supplied 2026-10-16; D1; Matos Moctezuma | Medium. For the proxy we model a 30 m base plus shrines to about 45 m (the low end) and label it illustrative |
+| Sacred precinct | Walled quadrangle (the *coatepantli*) about **400 × 440 m**, about 16–17 ha; about 45 public buildings (Sahagún lists 78) | Size: Matos Moctezuma, Proyecto Templo Mayor findings (author-supplied 2026-10-16; replaces the "about 500 m" figure in D1); building count: Coe 2008 via D1 | Medium-high |
+| Templo Mayor (final stage, phase VII, c. 1487–1519) | Base about 100 × 80 m; stepped pyramid about **30 m** high; **45–60 m** total with the twin shrines on top; four stepped terraces; twin stairways facing **west**; twin shrines with **Tlaloc north**, **Huitzilopochtli south** | Heights and phase: Matos Moctezuma, Proyecto Templo Mayor findings (author-supplied 2026-10-16); D1 | Medium. For the proxy we model a 30 m base plus shrines to about 45 m (the low end) and label it illustrative |
 | Other precinct buildings west of the Templo Mayor | Ballcourt (east–west), tzompantli beside it, round temple of Ehecatl-Quetzalcoatl, Temple of the Sun (under today's cathedral) | D1 | Medium |
 | Houses | Commoners: reed and mud with thatch. Better-off: flat-roofed adobe. Elite: stone with an inner court, lime-plastered | Coe 2008 via D1; C1 | High |
 | Canals | Dense canal network; districts separated by channels with wooden bridges | Thomas 1994 via D1 | High (exact routes unknown, so proxies are illustrative) |
@@ -71,5 +71,5 @@ All were published before 1931 and their authors and translators died before 195
 
 ## Open questions for the author
 1. ~~Florentine Codex rights~~: confirmed by the author 2026-10-16 (now A3).
-2. ~~Templo Mayor height and precinct size~~: author-supplied 2026-10-16. Still worth a publication citation (Matos Moctezuma or Smith) for the README credits.
-3. Is it acceptable to place the shoreline and canals as illustrative proxies? There is no open, licensed 1519 shoreline dataset.
+2. ~~Templo Mayor height and precinct size~~: from Matos Moctezuma's Proyecto Templo Mayor findings (author, 2026-10-16). For the README credits, name the specific publication when convenient.
+3. ~~Illustrative shoreline and canals~~: approved by the author 2026-10-16. They are labeled "illustrative" in the manifest and credits.

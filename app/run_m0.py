@@ -2,13 +2,14 @@
 
 Needs ComfyUI on :8188, comfy-api-proxy on :8189, and COMFY_BASE_URL=http://127.0.0.1:8189.
 
-  python app/run_m0.py --step A --renders /content/m0          # 12 drafts, 512x288x49
-  python app/run_m0.py --step B --strength 1.0 --mode inverse  # 3 prompts, 960x544x121
+  python app/run_m0.py --step A --renders /content/m0          # 12 drafts, 576x320x49
+  python app/run_m0.py --step B --strength 1.0 --mode inverse  # 3 prompts, 1024x576x121
   python app/run_m0.py --step C --strength 1.0 --mode inverse --prompt past_1519
   python app/run_m0.py --step A --dry-run                      # print the plan only
 
-`--renders` holds one folder per render (r512_49, r960_121, r960_241) as produced by
+`--renders` holds one folder per render (r576_49, r1024_121, r1024_241) as produced by
 scripts/make_control.py. Results go to out/m0/results/, one line per run in runs.jsonl.
+Exits with code 1 if any variant failed; failures include ComfyUI's exception message.
 """
 
 from __future__ import annotations
@@ -18,7 +19,9 @@ import itertools
 import json
 import os
 import shutil
+import sys
 import time
+import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -27,14 +30,42 @@ PROMPTS = REPO / "places" / "m0_synthetic" / "prompts.json"
 
 STEPS = {
     # step: (render folder, width, height, frames)
-    "A": ("r512_49", 512, 288, 49),
-    "B": ("r960_121", 960, 544, 121),
-    "C": ("r960_241", 960, 544, 241),
+    "A": ("r576_49", 576, 320, 49),
+    "B": ("r1024_121", 1024, 576, 121),
+    "C": ("r1024_241", 1024, 576, 241),
 }
+
+# The ref0.5 Union IC-LoRA has latent_downscale_factor 2: the guide is VAE-encoded at half the
+# output size, which must itself be divisible by 32. 288 and 544 fail inside the VAE encoder.
+SIZE_MULTIPLE = 64
+
+
+def check_size(width: int, height: int, frames: int) -> None:
+    if width % SIZE_MULTIPLE or height % SIZE_MULTIPLE:
+        raise ValueError(f"{width}x{height}: width and height must be multiples of {SIZE_MULTIPLE}")
+    if frames % 8 != 1:
+        raise ValueError(f"{frames} frames: LTX needs frames % 8 == 1")
+
+
+def comfy_error() -> str:
+    """Exception message and last traceback lines of the newest failed prompt, read from ComfyUI."""
+    url = os.environ.get("COMFYUI_URL", "http://127.0.0.1:8188")
+    try:
+        with urllib.request.urlopen(f"{url}/history?max_items=5", timeout=10) as r:
+            history = json.load(r)
+    except OSError as e:
+        return f"(could not read {url}/history: {e})"
+    for entry in reversed(list(history.values())):
+        for kind, data in entry.get("status", {}).get("messages", []):
+            if kind == "execution_error":
+                tb = "".join(data.get("traceback", [])[-6:])
+                return f"{data.get('node_type')}: {data.get('exception_message', '').strip()}\n{tb}"
+    return "(no execution_error in ComfyUI history)"
 
 
 def plan(step: str, prompts: list[str], strengths: list[float], modes: list[str]) -> list[dict]:
     folder, w, h, n = STEPS[step]
+    check_size(w, h, n)
     return [
         {"step": step, "prompt": p, "strength": s, "mode": m, "folder": folder,
          "width": w, "height": h, "frames": n,
@@ -126,6 +157,7 @@ def main() -> None:
     done = set()
     if log.exists():
         done = {r["name"] for r in map(json.loads, log.read_text().splitlines()) if not r.get("error")}
+    failed = 0
     for v in variants:
         if v["name"] in done:
             print(f"skip {v['name']} (already in runs.jsonl)")
@@ -134,10 +166,16 @@ def main() -> None:
         try:
             rec = run_variant(client, v, args.renders, args.results, texts, args.comfy_input_dir, args.seed)
         except Exception as e:  # keep going; one failed cell should not kill the matrix
-            rec = {**v, "error": f"{type(e).__name__}: {e}"}
+            rec = {**v, "error": f"{type(e).__name__}: {e}", "comfy_error": comfy_error()}
+            failed += 1
         print(json.dumps(rec), flush=True)
+        if rec.get("comfy_error"):
+            print(rec["comfy_error"], flush=True)
         with log.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec) + "\n")
+    if failed:
+        print(f"{failed} of {len(variants)} variants failed", flush=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

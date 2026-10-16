@@ -34,10 +34,10 @@ This file overrides `docs/research.md`. Newest entries go at the bottom of each 
 | Wan 2.1 VACE 14B | Apache-2.0; 480p/720p, ~81 frames. | HF Wan-AI/Wan2.1-VACE-14B |
 | Piper | The old repo is archived (MIT). Development moved to OHF-Voice/piper1-gpl (GPL-3.0, `pip install piper-tts`). | GitHub |
 | Local machine | Blender 4.4.3, RTX 3070 Ti 8 GB, Python 3.11 (`py`), uv, ffmpeg. | checked locally |
+| Guide size rule | With the ref0.5 Union IC-LoRA, `LTXAddVideoICLoRAGuide.encode` resizes the guide to `latent_size × 32 / latent_downscale_factor` and VAE-encodes it, so that size must itself be divisible by 32. The first Colab run (2026-10-16) failed at 512×288 and 960×544 with an einops error in the VAE encoder (`causal_video_autoencoder.py` space-to-depth), consistent with a factor of 2 (288/2 = 144, 144/32 = 4.5). **Width and height must be multiples of 64.** M0 now uses 576×320 and 1024×576. The official template avoids this because stage 1 runs at half resolution. | ComfyUI-LTXVideo `iclora.py` @44c8a36; ComfyUI @fc04da9; Colab log |
 
 ## Not yet verified (open)
 - Gemma 4 license terms (text encoder) — **must verify before M5**.
-- Exact `reference_downscale_factor` stored in the Union Control LoRA metadata (we assume "ref0.5" means 2). The loader node reads it automatically, so nothing depends on our guess.
 - Whether self-hosted ComfyUI driven through comfy-sdk qualifies (author is asking on Discord).
 - Whether `client.assets.from_file` works with core `LoadVideo` through the proxy (fallback: copy the file into `ComfyUI/input`).
 - Comfy int8 filenames in the LTX-2.5 repo (`scripts/download_models.py` lists the repo and picks by pattern).

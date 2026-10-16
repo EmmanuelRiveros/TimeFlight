@@ -14,9 +14,9 @@ into a usable, temporally consistent historical restyle?
 ## Test matrix (stage 1 only, seed 42, 24 fps)
 | Step | Size | Frames | Variants | Purpose |
 |---|---|---|---|---|
-| A | 512×288 | 49 | 3 prompts × strength {1.0, 0.7} × depth encoding {inverse, linear} = 12 | Pick the best setting cheaply |
-| B | 960×544 | 121 | best of A × 3 prompts | Go/no-go evidence |
-| C | 960×544 | 241 | best of A, 1 prompt | Do long clips hold up, so we can avoid chaining? |
+| A | 576×320 | 49 | 3 prompts × strength {1.0, 0.7} × depth encoding {inverse, linear} = 12 | Pick the best setting cheaply |
+| B | 1024×576 | 121 | best of A × 3 prompts | Go/no-go evidence |
+| C | 1024×576 | 241 | best of A, 1 prompt | Do long clips hold up, so we can avoid chaining? |
 | D (only if LTX fails) | 832×480 | 81 | Wan 2.1 VACE, same depth | Switch candidate |
 
 Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`, `colonial_1790`.
@@ -39,7 +39,7 @@ Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`,
 ## Run log
 | Date | Step | Variant | GPU | Wall time | Units | U1 | U3 | Notes |
 |---|---|---|---|---|---|---|---|---|
-| | | | | | | | | |
+| 2026-10-16 | A, B, C | all 16 | A100-SXM4 80GB | <2 s each (failed) | ~0.10 GPU h total, incl. setup | – | – | Every job failed in the guide's VAE encode: 288 and 544 are not multiples of 64 (see decisions.md, "Guide size rule"). Re-rendered at 576×320 and 1024×576. Setup (models + ComfyUI) took 0.08 h. |
 
 ## Decision
 _pending_

@@ -6,7 +6,7 @@ depth (hard edges, no texture), which is exactly what the real pipeline will fee
 
 Usage (Blender 4.4):
   blender -b --factory-startup -P blender/m0_synthetic_flyover.py -- \
-      --out out/m0/render --frames 49 --width 512 --height 288
+      --out out/m0/render --frames 49 --width 576 --height 320
 
 Writes:
   <out>/depth/0001.png ...  16-bit gray, value = planar camera depth / zscale (sky = 1.0)
@@ -30,8 +30,8 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
     p.add_argument("--frames", type=int, default=49)
-    p.add_argument("--width", type=int, default=512)
-    p.add_argument("--height", type=int, default=288)
+    p.add_argument("--width", type=int, default=576)
+    p.add_argument("--height", type=int, default=320)
     p.add_argument("--fps", type=int, default=24)
     p.add_argument("--speed", type=float, default=22.0, help="camera speed, m/s")
     p.add_argument("--zscale", type=float, default=4000.0, help="meters mapped to PNG value 1.0")
@@ -221,8 +221,8 @@ def render_rgb(scene, out):
 def main():
     args = parse_args()
     for name in ("width", "height"):
-        if getattr(args, name) % 32:
-            raise SystemExit(f"--{name} must be divisible by 32 (LTX constraint)")
+        if getattr(args, name) % 64:
+            raise SystemExit(f"--{name} must be divisible by 64 (LTX: 32, times 2 for the ref0.5 IC-LoRA guide)")
     if args.frames % 8 != 1:
         raise SystemExit("--frames must satisfy frames % 8 == 1 (LTX constraint)")
 

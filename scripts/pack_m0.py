@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "out"
-FOLDERS = ["r512_49", "r960_121", "r960_241"]
+FOLDERS = ["r576_49", "r1024_121", "r1024_241"]
 
 with zipfile.ZipFile(ROOT / "m0_inputs.zip", "w", zipfile.ZIP_STORED) as z:
     for folder in FOLDERS:
