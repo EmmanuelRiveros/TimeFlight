@@ -56,11 +56,15 @@ gpu_hours()"""),
     ("md", "## Step C: 241 frames (can we avoid chaining?)"),
     ("code", """!{RUN} --step C --strength 1.0 --mode inverse --prompt past_1519
 gpu_hours()"""),
-    ("md", """## M1: real place, present day, 15 s (361 frames)
-Upload `m1_inputs.zip` (made locally with `scripts/pack_m0.py --src out/m1 --folders r1024_361 --out out/m1_inputs.zip`)
+    ("md", """## Real place, 15 s (361 frames): present day and 1519
+Upload `place_inputs.zip` (made locally with
+`scripts/pack_m0.py --src out/place --folders present_r1024_361 1519_r1024_361 --out out/place_inputs.zip`)
 to `MyDrive/timeflight/`. 361 frames is a new length: if it fails or drifts, fall back to 2 × 241 with an overlap."""),
-    ("code", """!mkdir -p /content/m1 && unzip -oq /content/drive/MyDrive/timeflight/m1_inputs.zip -d /content/m1 && ls /content/m1
-!{RUN.replace('/content/m0 ', '/content/m1 ')} --step P --prompts places/tenochtitlan_zocalo/prompts.json --prompt present_2026 --strength 1.0 --mode inverse
+    ("code", """!mkdir -p /content/place && unzip -oq /content/drive/MyDrive/timeflight/place_inputs.zip -d /content/place && ls /content/place
+PLACE = "python app/run_m0.py --renders /content/place --results /content/m0_results --step P --prompts places/tenochtitlan_zocalo/prompts.json --strength 1.0 --mode inverse"
+!{PLACE} --folder present_r1024_361 --prompt present_2026
+gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
+    ("code", """!{PLACE} --folder 1519_r1024_361 --prompt past_1519
 gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/

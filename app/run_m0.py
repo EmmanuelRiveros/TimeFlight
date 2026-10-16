@@ -130,6 +130,7 @@ def main() -> None:
     p.add_argument("--step", choices=sorted(STEPS), required=True)
     p.add_argument("--renders", type=Path, default=REPO / "out" / "m0")
     p.add_argument("--prompts", type=Path, default=PROMPTS, help="prompts.json (default: M0 synthetic)")
+    p.add_argument("--folder", help="render folder inside --renders (default: the step's folder)")
     p.add_argument("--results", type=Path, default=REPO / "out" / "m0" / "results")
     p.add_argument("--prompt", nargs="+", help="prompt keys (default: all)")
     p.add_argument("--strength", nargs="+", type=float, help="guide strengths (default A: 1.0 0.7)")
@@ -144,6 +145,10 @@ def main() -> None:
     strengths = args.strength or ([1.0, 0.7] if args.step == "A" else [1.0])
     modes = args.mode or (["inverse", "linear"] if args.step == "A" else ["inverse"])
     variants = plan(args.step, prompts, strengths, modes)
+    if args.folder:
+        for v in variants:
+            v["folder"] = args.folder
+            v["name"] = f"{v['name']}_{args.folder}"
 
     for v in variants:
         print(v["name"])
