@@ -15,6 +15,7 @@ This file overrides `docs/research.md`. Newest entries go at the bottom of each 
 | D7 | 2026-10-16 | M0 hard cap is 10 GPU hours. If LTX is not usable by then, choose switch (Wan VACE) or descope using the data already collected. | Limited Colab units. |
 | D8 | 2026-10-16 | M0 uses a hand-built API-format graph (`workflows/build_m0.py`), not the official template. It feeds Blender depth straight into `LTXAddVideoICLoRAGuide` with no annotator. | The official template always derives depth with VideoDepthAnything. We want our own exact, stable depth, and a graph the SDK can drive. |
 | D9 | 2026-10-16 | Narration script (if restored): original text written from the listed sources. No copied Wikipedia text. | Author's request; avoids CC BY-SA share-alike. |
+| D10 | 2026-10-16 | **M0 GO: LTX-2.5 + Union Control IC-LoRA** with Blender depth injected directly. Strength 1.0, inverse encoding, 1024×576, up to 241 frames in one pass (no chaining). U4 (era read) is still pending the author's viewer test. | docs/smoke_test.md: structure and stability pass; ~40 s per 121-frame clip on A100 80GB. |
 
 ## Verified facts (checked 2026-10-16 against primary sources)
 

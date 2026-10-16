@@ -62,3 +62,24 @@ def test_flicker_ratio():
     assert metrics.flicker_ratio(out, ref) == pytest.approx(1.0)
     noisy = out + np.random.default_rng(1).normal(0, 20, out.shape)
     assert not metrics.verdict_u3(metrics.flicker_ratio(noisy, ref))
+
+
+def test_unstable_fraction_flags_boiling_not_motion():
+    pytest.importorskip("cv2")
+    rng = np.random.default_rng(0)
+    from numpy.fft import fft2, ifft2
+    noise = rng.normal(0, 1, (160, 400))
+    k = np.exp(-((np.fft.fftfreq(160)[:, None] ** 2 + np.fft.fftfreq(400)[None] ** 2) / 0.002))
+    tex = np.real(ifft2(fft2(noise) * k))
+    tex = 128 + 90 * tex / tex.std()
+    pan = np.stack([tex[:, i:i + 200] for i in range(0, 40, 2)])  # textured camera pan
+    assert metrics.unstable_fraction(pan) < 0.02
+    boiling = pan + rng.normal(0, 30, pan.shape)
+    assert metrics.unstable_fraction(boiling) > 0.2
+
+
+def test_pop_score_detects_spike():
+    frames = np.stack([np.full((8, 8), i, np.float32) for i in range(20)])
+    assert metrics.pop_score(frames) < 1.1
+    frames[10] += 50
+    assert metrics.pop_score(frames) > 2

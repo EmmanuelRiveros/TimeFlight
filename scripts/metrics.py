@@ -52,11 +52,13 @@ def evaluate(run: dict, renders: Path, stride: int) -> dict:
     ref = read_video(folder / "rgb.mp4", gray=True)
     out_gray = read_video(output, gray=True, size=(w, h))
     m = min(len(ref), len(out_gray))
-    ratio = metrics.flicker_ratio(out_gray[:m], ref[:m])
+    raw = metrics.flicker_ratio(out_gray[:m], ref[:m])
+    unstable = metrics.unstable_fraction(out_gray[:m])
     return {"name": run["name"], "u1_median": round(float(np.median(scores)), 3),
             "u1_min": round(float(scores.min()), 3), "u1_pass": metrics.verdict_u1(scores),
-            "u3_ratio": round(ratio, 3), "u3_pass": metrics.verdict_u3(ratio),
-            "wall_s": run.get("wall_s")}
+            "u3_raw_ratio": round(raw, 3), "u3_unstable": round(unstable, 4),
+            "u3_pass": metrics.verdict_u3_unstable(unstable),
+            "pop": round(metrics.pop_score(out_gray[:m]), 2), "wall_s": run.get("wall_s")}
 
 
 def main() -> None:

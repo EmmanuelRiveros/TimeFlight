@@ -26,7 +26,7 @@ Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`,
 |---|---|---|---|
 | U1 | Structure follows depth | `scripts/metrics.py structure`: Depth-Anything-V2-Small on the output, Spearman correlation with the control per frame | median ≥ 0.75 and no frame < 0.5 |
 | U2 | Camera fidelity | Visual: motion matches the path; no added pans, zooms or cuts | yes |
-| U3 | Temporal stability | `scripts/metrics.py flicker`: mean abs frame difference of the output ÷ that of the RGB reference. Plus a 3× slow-motion review | ratio ≤ 1.5 and ≤ 2 noticeable pops in 5 s |
+| U3 | Temporal stability | `scripts/metrics.py`: **unstable fraction**, the share of non-occluded pixels that still differ by > 20 gray levels after Farneback flow warping (revised 2026-10-16, see below). Pop score = max ÷ median frame difference. Plus a 3× slow-motion review | unstable ≤ 5% and pop ≤ 2 |
 | U4 | Reads as the era | 3 people with no context: "what place and time is this?" Count frames with modern artifacts | ≥ 2/3 say Aztec / pre-Hispanic / lake city; modern artifacts in < 10% of frames |
 | U5 | Affordable | Wall time and units per 121-frame clip | the final hero (15 s, present + past, stage 2) fits in ≤ 30% of the remaining units |
 
@@ -39,7 +39,28 @@ Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`,
 ## Run log
 | Date | Step | Variant | GPU | Wall time | Units | U1 | U3 | Notes |
 |---|---|---|---|---|---|---|---|---|
-| 2026-10-16 | A, B, C | all 16 | A100-SXM4 80GB | <2 s each (failed) | ~0.10 GPU h total, incl. setup | – | – | Every job failed in the guide's VAE encode: 288 and 544 are not multiples of 64 (see decisions.md, "Guide size rule"). Re-rendered at 576×320 and 1024×576. Setup (models + ComfyUI) took 0.08 h. |
+| 2026-10-16 (run 1) | A, B, C | all 16 | A100-SXM4 80GB | <2 s each (failed) | ~0.10 GPU h total, incl. setup | – | – | Every job failed in the guide's VAE encode: 288 and 544 are not multiples of 64 (see decisions.md, "Guide size rule"). Re-rendered at 576×320 and 1024×576. Setup (models + ComfyUI) took 0.08 h. |
+
+| 2026-10-16 (run 2) | A | 12 at 576×320×49 | A100-SXM4 80GB | 6.6–10.4 s (first run 25.5 s, model load) | ~0.12 GPU h for the whole session, incl. setup | 0.994–0.998 (inflated, see below) | unstable 0.08–0.47%, pop 1.06–1.18 | All pass. Inverse is slightly steadier than linear; 0.7 slightly steadier than 1.0 |
+| 2026-10-16 (run 2) | B | 3 prompts, 1.0, inverse, 1024×576×121 | same | 40.4–40.5 s | (in the 0.12 h) | 0.997–0.999 | unstable 0.08–0.15%, pop 1.16–1.19 | Depth edges overlaid on frame 60 match the building outlines |
+| 2026-10-16 (run 2) | C | past_1519, 1024×576×241 | same | 80.5 s | (in the 0.12 h) | – | unstable 0.03%, pop 1.50 | Coherent over 10 s; no drift seen in frames 0/40/100 |
+
+### Notes on the metrics (2026-10-16)
+- **U1 is inflated.** The ground plane's smooth near-to-far gradient dominates a whole-frame rank
+  correlation, so almost any plausible aerial image scores > 0.99. The real evidence for U1 is the
+  edge overlay: depth discontinuities sit on the generated building outlines.
+- **The original U3 ratio was wrong for this input.** The flat-shaded Workbench reference has little
+  texture, so its frame differences are tiny and every textured output "failed" (3.4–7.6). A
+  texture-normalized ratio was tried and rejected: per-frame noise raises spatial gradients as much
+  as it raises temporal differences, so it hides flicker (verified in a unit test). U3 now uses a
+  motion-compensated unstable-pixel fraction, which is ~0 for a textured pan and > 20% for added
+  noise (`tests/test_passes_metrics.py`). Baselines: Blender RGB 0.01%, control 0.00%.
 
 ## Decision
-_pending_
+**GO with LTX-2.5** (2026-10-16), U4 pending.
+- U1 pass (edge overlay), U2 pass on review of contact sheets (no added cuts or zooms), U3 pass, U5 pass by
+  a wide margin: a 121-frame 1024×576 clip costs ~40 s, and 241 frames ~80 s, so the hero needs no chaining.
+- **U4 is open.** The author shows B_past_1519 to 3 people. Expected weakness: the synthetic boxes read as
+  generic white houses on water. Period shapes come from the M2 proxies, not from the prompt.
+- Settings carried forward: strength 1.0, inverse depth encoding, single stage (stage-2 upscale untested).
+- M0 used about 0.22 GPU h of the 10 h cap.
