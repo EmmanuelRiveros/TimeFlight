@@ -1,0 +1,376 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "ltx-2.5-22b-distilled-transformer-bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": {
+      "title": "transformer"
+    }
+  },
+  "2": {
+    "class_type": "LTXICLoRALoaderModelOnly",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "lora_name": "ltx-2.3-22b-ic-lora-union-control-ref0.5.safetensors",
+      "strength_model": 1.0
+    },
+    "_meta": {
+      "title": "union_lora"
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "gemma4-12b-with-proj-ltx-2.5-bf16.safetensors",
+      "type": "ltxv",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "text_encoder"
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "positive_prompt"
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "negative_prompt"
+    }
+  },
+  "6": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "4",
+        0
+      ],
+      "negative": [
+        "5",
+        0
+      ],
+      "frame_rate": 24.0
+    },
+    "_meta": {
+      "title": "conditioning"
+    }
+  },
+  "7": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-video-vae-bf16.safetensors"
+    },
+    "_meta": {
+      "title": "video_vae"
+    }
+  },
+  "8": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+    },
+    "_meta": {
+      "title": "audio_vae"
+    }
+  },
+  "9": {
+    "class_type": "LoadVideo",
+    "inputs": {
+      "file": "control.mp4"
+    },
+    "_meta": {
+      "title": "depth_video"
+    }
+  },
+  "10": {
+    "class_type": "GetVideoComponents",
+    "inputs": {
+      "video": [
+        "9",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "depth_frames"
+    }
+  },
+  "11": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 512,
+      "height": 288,
+      "length": 49,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "video_latent"
+    }
+  },
+  "12": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "6",
+        1
+      ],
+      "vae": [
+        "7",
+        0
+      ],
+      "latent": [
+        "11",
+        0
+      ],
+      "image": [
+        "10",
+        0
+      ],
+      "frame_idx": 0,
+      "strength": 1.0,
+      "latent_downscale_factor": [
+        "2",
+        1
+      ],
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64
+    },
+    "_meta": {
+      "title": "guide"
+    }
+  },
+  "13": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 49,
+      "frame_rate": 24.0,
+      "batch_size": 1,
+      "audio_vae": [
+        "8",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "audio_latent"
+    }
+  },
+  "14": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "12",
+        2
+      ],
+      "audio_latent": [
+        "13",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "av_latent"
+    }
+  },
+  "15": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    },
+    "_meta": {
+      "title": "seed"
+    }
+  },
+  "16": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "positive": [
+        "12",
+        0
+      ],
+      "negative": [
+        "12",
+        1
+      ],
+      "cfg": 1.0
+    },
+    "_meta": {
+      "title": "guider"
+    }
+  },
+  "17": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler_ancestral"
+    },
+    "_meta": {
+      "title": "sampler"
+    }
+  },
+  "18": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
+    },
+    "_meta": {
+      "title": "sigmas"
+    }
+  },
+  "19": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "15",
+        0
+      ],
+      "guider": [
+        "16",
+        0
+      ],
+      "sampler": [
+        "17",
+        0
+      ],
+      "sigmas": [
+        "18",
+        0
+      ],
+      "latent_image": [
+        "14",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "sample"
+    }
+  },
+  "20": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "19",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "split_av"
+    }
+  },
+  "21": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "12",
+        0
+      ],
+      "negative": [
+        "12",
+        1
+      ],
+      "latent": [
+        "20",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "crop_guides"
+    }
+  },
+  "22": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "21",
+        2
+      ],
+      "vae": [
+        "7",
+        0
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    },
+    "_meta": {
+      "title": "decode"
+    }
+  },
+  "23": {
+    "class_type": "LTXVAudioVAEDecode",
+    "inputs": {
+      "samples": [
+        "20",
+        1
+      ],
+      "audio_vae": [
+        "8",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "decode_audio"
+    }
+  },
+  "24": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "22",
+        0
+      ],
+      "fps": 24.0,
+      "audio": [
+        "23",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "create_video"
+    }
+  },
+  "25": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "24",
+        0
+      ],
+      "filename_prefix": "timeflight/m0",
+      "format": "auto",
+      "codec": "auto"
+    },
+    "_meta": {
+      "title": "save"
+    }
+  }
+}

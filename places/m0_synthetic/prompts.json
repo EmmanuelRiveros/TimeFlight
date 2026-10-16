@@ -1,0 +1,9 @@
+{
+  "_note": "The distilled LTX-2.5 sampler runs at cfg 1.0, so the negative prompt has no effect; it is kept empty on purpose. Describe style, not the control signal (LTX IC-LoRA guide).",
+  "negative": "",
+  "prompts": {
+    "past_1519": "Aerial drone footage flying slowly over Tenochtitlan in 1519, the Aztec capital built on a lake. A long stone causeway crosses calm turquoise water toward a dense city of white-plastered flat-roofed adobe houses, canals with wooden canoes and green chinampa gardens. In the distance a great stepped pyramid with twin temples rises over the city. Soft morning light, light haze over the lake, documentary cinematography, realistic, highly detailed.",
+    "present_2026": "Aerial drone footage flying slowly over the historic center of Mexico City today. A straight avenue leads toward a dense city of concrete buildings with flat rooftops, water tanks and colorful facades, streets with traffic, and a large plaza in the distance. Clear morning light, light smog on the horizon, documentary cinematography, realistic, highly detailed.",
+    "colonial_1790": "Aerial drone footage flying slowly over colonial Mexico City in 1790. A raised road crosses shallow lake water and marshland toward a city of stone and adobe buildings with tiled roofs, church domes and bell towers, and a large central plaza with a baroque cathedral in the distance. Soft morning light, documentary cinematography, realistic, highly detailed."
+  }
+}
