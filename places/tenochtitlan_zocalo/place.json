@@ -1,0 +1,24 @@
+{
+  "id": "tenochtitlan_zocalo",
+  "name": "Zócalo, Mexico City / Tenochtitlan",
+  "_note": "Coordinates are WGS84. alt = meters above the origin's ground height. Keyframes (M1 draft): start above Av. Hidalgo north of the Alameda, fly east along Calle Tacuba, end west of the Templo Mayor (OSM 19.43489, -99.13172) looking down toward it and the Zócalo.",
+  "origin": {"lat": 19.4326, "lon": -99.1332, "label": "Plaza de la Constitución (Zócalo)"},
+  "dem_box": {"south": 19.23, "north": 19.63, "west": -99.35, "east": -98.93},
+  "osm": {
+    "pbf_url": "https://download.geofabrik.de/north-america/mexico-latest.osm.pbf",
+    "box": {"south": 19.424, "north": 19.446, "west": -99.152, "east": -99.122},
+    "landmarks": ["Templo Mayor", "Catedral Metropolitana", "Bellas Artes", "Plaza de la Constitución",
+                  "Palacio Nacional", "Alameda Central", "Torre Latinoamericana"]
+  },
+  "terrain": {"half_size_m": 20000, "step_m": 50, "buildings_radius_m": 3000,
+              "dsm_opening_px": 7},
+  "path": {
+    "fps": 24,
+    "ease": 0.3,
+    "keyframes": [
+      {"lat": 19.4362, "lon": -99.1465, "alt": 260, "look_at": {"lat": 19.4349, "lon": -99.1317, "alt": 20}},
+      {"lat": 19.4360, "lon": -99.1395, "alt": 210, "look_at": {"lat": 19.4349, "lon": -99.1317, "alt": 10}},
+      {"lat": 19.4356, "lon": -99.1335, "alt": 140, "look_at": {"lat": 19.4340, "lon": -99.1317, "alt": 0}}
+    ]
+  }
+}

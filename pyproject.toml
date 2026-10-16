@@ -19,6 +19,8 @@ dependencies = [
 comfy = ["comfy-sdk>=0.5", "comfy-api-proxy>=0.1.6"]
 # Go/no-go metrics (Depth-Anything-V2-Small, Apache-2.0).
 metrics = ["torch", "transformers>=4.45", "opencv-python-headless>=4.9"]
+# Geodata fetch (scripts/fetch_geodata.py): rasterio (BSD-3, bundles GDAL), pyosmium (BSD-2).
+geo = ["rasterio>=1.4", "osmium>=4.0"]
 dev = ["pytest>=8"]
 
 [tool.setuptools.packages.find]

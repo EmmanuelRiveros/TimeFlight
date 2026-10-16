@@ -24,6 +24,10 @@ from pathlib import Path
 import bpy
 from mathutils import Vector
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tf_render import (add_mesh, check_ltx_size, configure_common, render_depth,  # noqa: E402
+                       render_rgb, reset_scene)
+
 
 def parse_args():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
@@ -39,27 +43,6 @@ def parse_args():
     p.add_argument("--samples", type=int, default=16)
     p.add_argument("--skip-rgb", action="store_true")
     return p.parse_args(argv)
-
-
-def reset_scene():
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    return bpy.context.scene
-
-
-def add_mesh(name, verts, faces, colors=None):
-    mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(verts, [], faces)
-    mesh.update()
-    if colors is not None:
-        attr = mesh.color_attributes.new("Col", "FLOAT_COLOR", "CORNER")
-        for poly in mesh.polygons:
-            c = colors[poly.index]
-            for li in poly.loop_indices:
-                attr.data[li].color = (*c, 1.0)
-        mesh.color_attributes.active_color = attr
-    obj = bpy.data.objects.new(name, mesh)
-    bpy.context.scene.collection.objects.link(obj)
-    return obj
 
 
 def ground_z(x, y):
@@ -147,91 +130,16 @@ def add_camera(scene, frames, fps, speed):
         cam.keyframe_insert("rotation_euler", frame=f + 1)
 
 
-def depth_material():
-    mat = bpy.data.materials.new("DepthOverride")
-    mat.use_nodes = True
-    nt = mat.node_tree
-    nt.nodes.clear()
-    cam = nt.nodes.new("ShaderNodeCameraData")
-    div = nt.nodes.new("ShaderNodeMath")
-    div.operation = "DIVIDE"
-    emit = nt.nodes.new("ShaderNodeEmission")
-    out = nt.nodes.new("ShaderNodeOutputMaterial")
-    nt.links.new(cam.outputs["View Z Depth"], div.inputs[0])
-    nt.links.new(div.outputs[0], emit.inputs["Color"])
-    nt.links.new(emit.outputs[0], out.inputs["Surface"])
-    return mat, div
-
-
-def configure_common(scene, args):
-    scene.frame_start, scene.frame_end = 1, args.frames
-    scene.render.fps = args.fps
-    scene.render.resolution_x, scene.render.resolution_y = args.width, args.height
-    scene.render.resolution_percentage = 100
-    scene.render.dither_intensity = 0.0
-    scene.render.use_file_extension = True
-    img = scene.render.image_settings
-    img.file_format = "PNG"
-    img.compression = 15
-
-
-def render_depth(scene, args, out):
-    scene.render.engine = "CYCLES"
-    scene.cycles.samples = args.samples
-    scene.cycles.use_denoising = False
-    scene.cycles.max_bounces = 0
-    scene.cycles.pixel_filter_type = "BOX"  # no blending across depth edges beyond 1 px
-    scene.view_settings.view_transform = "Raw"
-    scene.view_settings.look = "None"
-    scene.view_settings.exposure = 0.0
-    scene.view_settings.gamma = 1.0
-    scene.render.image_settings.color_mode = "BW"
-    scene.render.image_settings.color_depth = "16"
-
-    world = bpy.data.worlds.new("SkyDepth")
-    world.use_nodes = True
-    bg = world.node_tree.nodes["Background"]
-    bg.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)  # sky = zscale meters
-    bg.inputs["Strength"].default_value = 1.0
-    scene.world = world
-
-    mat, div = depth_material()
-    div.inputs[1].default_value = args.zscale
-    scene.view_layers[0].material_override = mat
-    scene.render.filepath = str(out / "depth" / "####")
-    bpy.ops.render.render(animation=True)
-    scene.view_layers[0].material_override = None
-
-
-def render_rgb(scene, out):
-    scene.render.engine = "BLENDER_WORKBENCH"
-    shading = scene.display.shading
-    shading.light = "STUDIO"
-    shading.color_type = "VERTEX"
-    shading.show_shadows = True
-    shading.show_cavity = True
-    scene.display.render_aa = "8"
-    scene.view_settings.view_transform = "Standard"
-    scene.render.image_settings.color_mode = "RGB"
-    scene.render.image_settings.color_depth = "8"
-    scene.render.filepath = str(out / "rgb" / "####")
-    bpy.ops.render.render(animation=True)
-
-
 def main():
     args = parse_args()
-    for name in ("width", "height"):
-        if getattr(args, name) % 64:
-            raise SystemExit(f"--{name} must be divisible by 64 (LTX: 32, times 2 for the ref0.5 IC-LoRA guide)")
-    if args.frames % 8 != 1:
-        raise SystemExit("--frames must satisfy frames % 8 == 1 (LTX constraint)")
+    check_ltx_size(args.width, args.height, args.frames)
 
     out = Path(args.out).resolve()
     scene = reset_scene()
-    configure_common(scene, args)
+    configure_common(scene, args.frames, args.fps, args.width, args.height)
     build_city(args.seed)
     add_camera(scene, args.frames, args.fps, args.speed)
-    render_depth(scene, args, out)
+    render_depth(scene, out, args.zscale, args.samples)
     if not args.skip_rgb:
         render_rgb(scene, out)
 
