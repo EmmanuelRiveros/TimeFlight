@@ -33,6 +33,8 @@ STEPS = {
     "A": ("r576_49", 576, 320, 49),
     "B": ("r1024_121", 1024, 576, 121),
     "C": ("r1024_241", 1024, 576, 241),
+    # Real place (M1 passes, 15 s hero length): --renders out/m1 --prompts places/<id>/prompts.json
+    "P": ("r1024_361", 1024, 576, 361),
 }
 
 # The ref0.5 Union IC-LoRA has latent_downscale_factor 2: the guide is VAE-encoded at half the
@@ -127,6 +129,7 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--step", choices=sorted(STEPS), required=True)
     p.add_argument("--renders", type=Path, default=REPO / "out" / "m0")
+    p.add_argument("--prompts", type=Path, default=PROMPTS, help="prompts.json (default: M0 synthetic)")
     p.add_argument("--results", type=Path, default=REPO / "out" / "m0" / "results")
     p.add_argument("--prompt", nargs="+", help="prompt keys (default: all)")
     p.add_argument("--strength", nargs="+", type=float, help="guide strengths (default A: 1.0 0.7)")
@@ -136,7 +139,7 @@ def main() -> None:
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
 
-    texts = json.loads(PROMPTS.read_text(encoding="utf-8"))
+    texts = json.loads(args.prompts.read_text(encoding="utf-8"))
     prompts = args.prompt or list(texts["prompts"])
     strengths = args.strength or ([1.0, 0.7] if args.step == "A" else [1.0])
     modes = args.mode or (["inverse", "linear"] if args.step == "A" else ["inverse"])

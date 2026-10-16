@@ -56,6 +56,12 @@ gpu_hours()"""),
     ("md", "## Step C: 241 frames (can we avoid chaining?)"),
     ("code", """!{RUN} --step C --strength 1.0 --mode inverse --prompt past_1519
 gpu_hours()"""),
+    ("md", """## M1: real place, present day, 15 s (361 frames)
+Upload `m1_inputs.zip` (made locally with `scripts/pack_m0.py --src out/m1 --folders r1024_361 --out out/m1_inputs.zip`)
+to `MyDrive/timeflight/`. 361 frames is a new length: if it fails or drifts, fall back to 2 × 241 with an overlap."""),
+    ("code", """!mkdir -p /content/m1 && unzip -oq /content/drive/MyDrive/timeflight/m1_inputs.zip -d /content/m1 && ls /content/m1
+!{RUN.replace('/content/m0 ', '/content/m1 ')} --step P --prompts places/tenochtitlan_zocalo/prompts.json --prompt present_2026 --strength 1.0 --mode inverse
+gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/

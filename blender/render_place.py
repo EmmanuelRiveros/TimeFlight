@@ -40,11 +40,12 @@ def parse_args():
     p.add_argument("--zscale", type=float, default=40000.0, help="meters mapped to PNG value 1.0")
     p.add_argument("--samples", type=int, default=16)
     p.add_argument("--skip-rgb", action="store_true")
+    p.add_argument("--era", help="era name: use scene/era_<name>/ proxies and water instead of OSM buildings")
     return p.parse_args(argv)
 
 
-def build_terrain(scene_dir):
-    grid = np.load(scene_dir / "terrain.npy")
+def build_terrain(path):
+    grid = np.load(path)
     ny, nx = grid.shape[:2]
     loops, totals = grid_faces(ny, nx)
     z = grid[..., 2].reshape(-1)
@@ -54,16 +55,24 @@ def build_terrain(scene_dir):
     mesh_from_arrays("Terrain", grid.reshape(-1, 3), loops, totals, colors)
 
 
-def build_buildings(scene_dir):
-    b = np.load(scene_dir / "buildings.npz")
+# Workbench colors per era proxy kind (RGB reference only; order matches timeflight.era.proxies.KINDS).
+KIND_COLORS = {"land": (0.55, 0.50, 0.42), "house": (0.85, 0.82, 0.74), "temple": (0.80, 0.76, 0.66),
+               "shrine": (0.70, 0.35, 0.30), "stairs": (0.75, 0.72, 0.64), "wall": (0.72, 0.68, 0.60),
+               "palace": (0.88, 0.85, 0.78), "causeway": (0.60, 0.56, 0.48), "bridge": (0.45, 0.33, 0.22),
+               "garden": (0.35, 0.50, 0.28)}
+
+
+def build_buildings(path, kinds=None):
+    b = np.load(path)
     xy, lens, base, height = b["ring_xy"], b["ring_len"], b["base_z"], b["height"]
+    kind_idx = b["kind"] if "kind" in b.files else None
     verts, loops, totals, colors = [], [], [], []
     rng = np.random.default_rng(0)
     offset, v0 = 0, 0
-    for n, z0, h in zip(lens, base, height):
+    for i, (n, z0, h) in enumerate(zip(lens, base, height)):
         ring = xy[offset:offset + n]
         offset += n
-        bottom = np.column_stack([ring, np.full(n, z0 - 2.0)])  # sink 2 m to hide DEM error
+        bottom = np.column_stack([ring, np.full(n, z0)])
         top = np.column_stack([ring, np.full(n, z0 + h)])
         verts += [bottom, top]
         idx = np.arange(n)
@@ -71,12 +80,21 @@ def build_buildings(scene_dir):
         sides = np.stack([v0 + idx, v0 + nxt, v0 + n + nxt, v0 + n + idx], axis=1)
         loops += [sides.ravel(), v0 + n + idx]
         totals += [np.full(n, 4), [n]]
-        shade = rng.uniform(0.6, 0.9)
-        colors += [np.tile([shade, shade * 0.96, shade * 0.9], (n + 1, 1))]
+        if kind_idx is not None:
+            col = np.array(KIND_COLORS[kinds[kind_idx[i]]]) * rng.uniform(0.92, 1.05)
+        else:
+            shade = rng.uniform(0.6, 0.9)
+            col = np.array([shade, shade * 0.96, shade * 0.9])
+        colors += [np.tile(col, (n + 1, 1))]
         v0 += 2 * n
     mesh_from_arrays("Buildings", np.vstack(verts), np.concatenate(loops),
                      np.concatenate(totals), np.vstack(colors))
     return len(lens)
+
+
+def build_water(level, half=30000.0):
+    verts = [(-half, -half, level), (half, -half, level), (half, half, level), (-half, half, level)]
+    mesh_from_arrays("Water", verts, [0, 1, 2, 3], [4], [(0.22, 0.36, 0.40)])
 
 
 def add_camera(scene, cam_json, start, frames):
@@ -113,8 +131,15 @@ def main():
 
     scene = reset_scene()
     configure_common(scene, args.frames, fps, args.width, args.height)
-    build_terrain(scene_dir)
-    n_buildings = build_buildings(scene_dir)
+    era_terrain = scene_dir / f"era_{args.era}" / "terrain.npy" if args.era else None
+    build_terrain(era_terrain if era_terrain and era_terrain.exists() else scene_dir / "terrain.npy")
+    if args.era:
+        era_dir = scene_dir / f"era_{args.era}"
+        era = json.loads((era_dir / "era.json").read_text())
+        n_buildings = build_buildings(era_dir / "buildings.npz", era["kinds"])
+        build_water(era["water_level"])
+    else:
+        n_buildings = build_buildings(scene_dir / "buildings.npz")
     add_camera(scene, cam_json, args.start, args.frames)
     render_depth(scene, out, args.zscale, args.samples)
     if not args.skip_rgb:
@@ -123,7 +148,8 @@ def main():
     meta = {"frames": args.frames, "width": args.width, "height": args.height, "fps": fps,
             "start": args.start, "path_frames": cam_json["frames"], "zscale": args.zscale,
             "depth": "planar camera Z, value = z / zscale", "sky_value": 1.0,
-            "origin": cam_json["origin"], "lens_mm": cam_json["lens_mm"], "buildings": n_buildings}
+            "origin": cam_json["origin"], "lens_mm": cam_json["lens_mm"], "buildings": n_buildings,
+            "era": args.era or "present"}
     (out / "render.json").write_text(json.dumps(meta, indent=2))
     print(f"[timeflight] wrote {out}")
 

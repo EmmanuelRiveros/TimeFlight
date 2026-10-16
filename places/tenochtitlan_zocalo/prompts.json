@@ -1,0 +1,7 @@
+{
+  "_note": "cfg 1.0 (distilled sampler): the negative prompt has no effect. Describe the look, not the geometry; the depth control supplies the layout.",
+  "negative": "",
+  "prompts": {
+    "present_2026": "Aerial drone footage flying over the historic center of Mexico City today. Dense blocks of colonial and modern buildings in red tezontle stone and pale plaster with flat rooftops and water tanks, a white Art Nouveau palace with domes, a tall glass and steel tower, narrow streets with traffic and pedestrians, and ahead the baroque Metropolitan Cathedral beside the huge open Zócalo plaza with its giant flag and the long facade of the National Palace. Clear morning light, light smog toward distant volcanic mountains, documentary cinematography, realistic, highly detailed."
+  }
+}

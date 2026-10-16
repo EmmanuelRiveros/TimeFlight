@@ -87,9 +87,29 @@ def configure_common(scene, frames, fps, width, height):
     img.compression = 15
 
 
+def use_gpu(scene):
+    """Use OptiX or CUDA for Cycles when available; otherwise stay on CPU. Returns the device type."""
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    for kind in ("OPTIX", "CUDA"):
+        try:
+            prefs.compute_device_type = kind
+            prefs.get_devices()
+        except TypeError:
+            continue
+        gpus = [d for d in prefs.devices if d.type == kind]
+        if gpus:
+            for d in prefs.devices:
+                d.use = d.type == kind
+            scene.cycles.device = "GPU"
+            return kind
+    scene.cycles.device = "CPU"
+    return "CPU"
+
+
 def render_depth(scene, out, zscale, samples):
     """16-bit gray PNGs, value = planar camera depth / zscale, sky = 1.0."""
     scene.render.engine = "CYCLES"
+    print(f"[timeflight] Cycles device: {use_gpu(scene)}")
     scene.cycles.samples = samples
     scene.cycles.use_denoising = False
     scene.cycles.max_bounces = 0
