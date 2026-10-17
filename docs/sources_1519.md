@@ -38,7 +38,7 @@ All were published before 1931 and their authors and translators died before 195
 | # | Source | Use | Note |
 |---|---|---|---|
 | D1 | Wikipedia, [Templo Mayor](https://en.wikipedia.org/wiki/Templo_Mayor) and [Tenochtitlan](https://en.wikipedia.org/wiki/Tenochtitlan) | Finding the underlying citations (Coe 2008; Smith 2005; Matos Moctezuma 1987/88; Šprajc 2000) | The text is CC BY-SA, so we copy nothing. The Templo Mayor article is tagged "needs more citations"; verify its numbers in the cited works |
-| D2 | INAH / Proyecto Templo Mayor publications, Museo del Templo Mayor | Precinct layout and building positions | INAH images and models (e.g. the Marquina model) are copyrighted. Facts only |
+| D2 | Eduardo Matos Moctezuma (Proyecto Templo Mayor, INAH): *The Great Temple of the Aztecs: Treasures of Tenochtitlan*, London/New York: Thames and Hudson, 1988 (New Aspects of Antiquity; ISBN 0-500-39024-X; [WorldCat 17968786](https://search.worldcat.org/oclc/17968786)); *Vida y muerte en el Templo Mayor*, Mexico: Ediciones Océano, 1986 (English: *Life and Death in the Templo Mayor*, tr. B. R. and T. Ortiz de Montellano, University Press of Colorado, 1995). Selected by the author 2026-10-17 | Templo Mayor dimensions and phases, precinct size and layout | INAH images and models (e.g. the Marquina model) are copyrighted. Facts only |
 | D3 | OpenStreetMap (ODbL) | Modern street geometry that follows the old causeways; position of the Templo Mayor archaeological zone | Credit "© OpenStreetMap contributors". Do not commit derived data |
 
 ## E. Excluded
@@ -71,5 +71,5 @@ All were published before 1931 and their authors and translators died before 195
 
 ## Open questions for the author
 1. ~~Florentine Codex rights~~: confirmed by the author 2026-10-16 (now A3).
-2. ~~Templo Mayor height and precinct size~~: from Matos Moctezuma's Proyecto Templo Mayor findings (author, 2026-10-16). For the README credits, name the specific publication when convenient.
+2. ~~Templo Mayor height and precinct size~~: from Matos Moctezuma's Proyecto Templo Mayor findings (author, 2026-10-16). Publications locked 2026-10-17 (D2). Bibliographic details checked against library catalogs; the 1986 Océano first edition is confirmed only by a review citation, not by a catalog record.
 3. ~~Illustrative shoreline and canals~~: approved by the author 2026-10-16. They are labeled "illustrative" in the manifest and credits.

@@ -58,10 +58,11 @@ Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`,
   noise (`tests/test_passes_metrics.py`). Baselines: Blender RGB 0.01%, control 0.00%.
 
 ## Decision
-**GO with LTX-2.5** (2026-10-16), U4 pending.
+**GO with LTX-2.5** (2026-10-16). U4 passed 2026-10-17.
 - U1 pass (edge overlay), U2 pass on review of contact sheets (no added cuts or zooms), U3 pass, U5 pass by
   a wide margin: a 121-frame 1024×576 clip costs ~40 s, and 241 frames ~80 s, so the hero needs no chaining.
-- **U4 is open.** The author shows B_past_1519 to 3 people. Expected weakness: the synthetic boxes read as
+- **U4 pass (2026-10-17):** all 3 viewers with no context identified Tenochtitlan (author's test; modern-artifact frame count not recorded).
+  Original note: the author shows B_past_1519 to 3 people. Expected weakness: the synthetic boxes read as
   generic white houses on water. Period shapes come from the M2 proxies, not from the prompt.
 - Settings carried forward: strength 1.0, inverse depth encoding, single stage (stage-2 upscale untested).
 - M0 used about 0.22 GPU h of the 10 h cap.

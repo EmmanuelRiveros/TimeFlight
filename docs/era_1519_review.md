@@ -11,7 +11,10 @@ SA or all-rights-reserved licences.
 ![Island plan](img/era_1519_plan.png)
 ![Precinct plan](img/era_1519_precinct.png)
 
-## What to check (status: pending author review)
+## What to check (status: approved by the author 2026-10-17)
+
+The author approved the layout as is. The western shoreline and the canal grid stay explicitly illustrative,
+since no exact micro-topographical record exists. D2 now names the Matos Moctezuma publications.
 
 | # | Element | What the proxy does | Sources | Confidence | Question for you |
 |---|---|---|---|---|---|

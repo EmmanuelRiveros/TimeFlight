@@ -1,84 +1,525 @@
 {
-  "era": "1519",
-  "label": "Tenochtitlan, 1519",
-  "year": 1519,
-  "illustrative": true,
-  "_note": "Massing proxies for the video model, not an archaeological reconstruction. Offsets are meters from the Templo Mayor anchor (x east, y north). Every element lists its sources and a confidence. Positions marked 'illustrative' are the author's layout choices within what the sources say; review them in docs/era_1519_review.md.",
+ "era": "1519",
+ "label": "Tenochtitlan, 1519",
+ "year": 1519,
+ "illustrative": true,
+ "_note": "Massing proxies for the video model, not an archaeological reconstruction. Offsets are meters from the Templo Mayor anchor (x east, y north). Every element lists its sources and a confidence. Positions marked 'illustrative' are the author's layout choices within what the sources say; review them in docs/era_1519_review.md.",
+ "sources": [
+  {
+   "id": "A1",
+   "title": "Nuremberg map of Tenochtitlan (1524), Newberry Library Ayer 655.51 .C8 1524d",
+   "url": "https://collections.newberry.org/archive/-2KXJ8ZRSNGFZ.html",
+   "license": "No Copyright - United States",
+   "credit": "From the Newberry Library"
+  },
+  {
+   "id": "A2",
+   "title": "Map of Mexico City ca. 1550 (Uppsala map), Uppsala University Library, Alvin record 85478",
+   "url": "http://www.alvin-portal.org/alvin/view.jsf?pid=alvin-record%3A85478",
+   "license": "Public Domain Mark",
+   "credit": "Uppsala University Library"
+  },
+  {
+   "id": "A3",
+   "title": "Florentine Codex (Sahagún and Nahua artists, 1577), Biblioteca Medicea Laurenziana",
+   "url": "https://www.loc.gov/item/2021667849",
+   "license": "No known restrictions (LOC / World Digital Library)",
+   "credit": "Florentine Codex, Biblioteca Medicea Laurenziana, World Digital Library"
+  },
+  {
+   "id": "C1",
+   "title": "Hernán Cortés, Second Letter (1520), tr. F. A. MacNutt (1908)",
+   "url": "https://archive.org/details/fernandocorteshi01cort",
+   "license": "Public domain",
+   "credit": "Cortés, tr. MacNutt 1908"
+  },
+  {
+   "id": "C2",
+   "title": "Bernal Díaz del Castillo, True History, tr. J. I. Lockhart (1844)",
+   "url": "https://www.gutenberg.org/ebooks/32474",
+   "license": "Public domain",
+   "credit": "Díaz del Castillo, tr. Lockhart 1844"
+  },
+  {
+   "id": "D1",
+   "title": "Wikipedia: Templo Mayor; Tenochtitlan (facts only, with their cited works)",
+   "url": "https://en.wikipedia.org/wiki/Tenochtitlan",
+   "license": "Facts only (no text or images used)",
+   "credit": "Facts cross-checked with Wikipedia and its cited works"
+  },
+  {
+   "id": "D2",
+   "title": "E. Matos Moctezuma, The Great Temple of the Aztecs: Treasures of Tenochtitlan (London: Thames and Hudson, 1988); Vida y muerte en el Templo Mayor (Mexico: Ediciones Oceano, 1986; tr. Life and Death in the Templo Mayor, University Press of Colorado, 1995)",
+   "url": "https://search.worldcat.org/oclc/17968786",
+   "license": "Facts only (no text or images used)",
+   "credit": "Dimensions after E. Matos Moctezuma, The Great Temple of the Aztecs (1988) and Vida y muerte en el Templo Mayor (1986)"
+  },
+  {
+   "id": "OSM",
+   "title": "OpenStreetMap: position of the Templo Mayor ruins (way 1423783282) and modern landmarks",
+   "url": "https://www.openstreetmap.org/way/1423783282",
+   "license": "ODbL 1.0 (positions only)",
+   "credit": "© OpenStreetMap contributors"
+  }
+ ],
+ "anchor": {
+  "name": "Templo Mayor",
+  "lat": 19.43489,
+  "lon": -99.13172,
   "sources": [
-    {"id": "A1", "title": "Nuremberg map of Tenochtitlan (1524), Newberry Library Ayer 655.51 .C8 1524d", "url": "https://collections.newberry.org/archive/-2KXJ8ZRSNGFZ.html", "license": "No Copyright - United States", "credit": "From the Newberry Library"},
-    {"id": "A2", "title": "Map of Mexico City ca. 1550 (Uppsala map), Uppsala University Library, Alvin record 85478", "url": "http://www.alvin-portal.org/alvin/view.jsf?pid=alvin-record%3A85478", "license": "Public Domain Mark", "credit": "Uppsala University Library"},
-    {"id": "A3", "title": "Florentine Codex (Sahagún and Nahua artists, 1577), Biblioteca Medicea Laurenziana", "url": "https://www.loc.gov/item/2021667849", "license": "No known restrictions (LOC / World Digital Library)", "credit": "Florentine Codex, Biblioteca Medicea Laurenziana, World Digital Library"},
-    {"id": "C1", "title": "Hernán Cortés, Second Letter (1520), tr. F. A. MacNutt (1908)", "url": "https://archive.org/details/fernandocorteshi01cort", "license": "Public domain", "credit": "Cortés, tr. MacNutt 1908"},
-    {"id": "C2", "title": "Bernal Díaz del Castillo, True History, tr. J. I. Lockhart (1844)", "url": "https://www.gutenberg.org/ebooks/32474", "license": "Public domain", "credit": "Díaz del Castillo, tr. Lockhart 1844"},
-    {"id": "D1", "title": "Wikipedia: Templo Mayor; Tenochtitlan (facts only, with their cited works)", "url": "https://en.wikipedia.org/wiki/Tenochtitlan", "license": "Facts only (no text or images used)", "credit": "Facts cross-checked with Wikipedia and its cited works"},
-    {"id": "D2", "title": "E. Matos Moctezuma, Proyecto Templo Mayor findings (INAH)", "url": "https://www.templomayor.inah.gob.mx/", "license": "Facts only (no text or images used)", "credit": "Dimensions after Matos Moctezuma, Proyecto Templo Mayor"},
-    {"id": "OSM", "title": "OpenStreetMap: position of the Templo Mayor ruins (way 1423783282) and modern landmarks", "url": "https://www.openstreetmap.org/way/1423783282", "license": "ODbL 1.0 (positions only)", "credit": "© OpenStreetMap contributors"}
+   "OSM"
   ],
-  "anchor": {"name": "Templo Mayor", "lat": 19.43489, "lon": -99.13172, "sources": ["OSM"], "confidence": "high"},
-  "remove": {"osm_buildings": "all", "sources": ["D1"], "confidence": "high",
-             "note": "No standing modern building existed in 1519; the colonial city was built over the Aztec one."},
-  "water": {"level_m": 6.0, "land_height_m": 1.5, "sources": ["A1", "A2", "D1"], "confidence": "illustrative",
-            "note": "Lake Texcoco as a flat water plane at 6 m above today's Zócalo ground: today's DEM floods the old lake bed (incl. Tepetzinco / Peñón de los Baños as an island). Subsidence since 1519 is not modeled."},
-  "island": {
-    "polygon_latlon": [[19.4555, -99.1480], [19.4560, -99.1290], [19.4500, -99.1205], [19.4400, -99.1180],
-                       [19.4280, -99.1190], [19.4205, -99.1270], [19.4210, -99.1440], [19.4290, -99.1545],
-                       [19.4400, -99.1545], [19.4490, -99.1530]],
-    "sources": ["A1", "A2", "D1"], "confidence": "illustrative",
-    "note": "Tenochtitlan and Tlatelolco, about 12 km² (D1: 8-13.5 km²). West edge near today's Av. Bucareli (D1). Exact shoreline undocumented."
+  "confidence": "high"
+ },
+ "remove": {
+  "osm_buildings": "all",
+  "sources": [
+   "D1"
+  ],
+  "confidence": "high",
+  "note": "No standing modern building existed in 1519; the colonial city was built over the Aztec one."
+ },
+ "water": {
+  "level_m": 6.0,
+  "land_height_m": 1.5,
+  "sources": [
+   "A1",
+   "A2",
+   "D1"
+  ],
+  "confidence": "illustrative",
+  "note": "Lake Texcoco as a flat water plane at 6 m above today's Zócalo ground: today's DEM floods the old lake bed (incl. Tepetzinco / Peñón de los Baños as an island). Subsidence since 1519 is not modeled."
+ },
+ "island": {
+  "polygon_latlon": [
+   [
+    19.4555,
+    -99.148
+   ],
+   [
+    19.456,
+    -99.129
+   ],
+   [
+    19.45,
+    -99.1205
+   ],
+   [
+    19.44,
+    -99.118
+   ],
+   [
+    19.428,
+    -99.119
+   ],
+   [
+    19.4205,
+    -99.127
+   ],
+   [
+    19.421,
+    -99.144
+   ],
+   [
+    19.429,
+    -99.1545
+   ],
+   [
+    19.44,
+    -99.1545
+   ],
+   [
+    19.449,
+    -99.153
+   ]
+  ],
+  "sources": [
+   "A1",
+   "A2",
+   "D1"
+  ],
+  "confidence": "illustrative",
+  "note": "Tenochtitlan and Tlatelolco, about 12 km² (D1: 8-13.5 km²). West edge near today's Av. Bucareli (D1). Exact shoreline undocumented."
+ },
+ "canals": {
+  "block_m": 130,
+  "canal_m": 10,
+  "chinampa_band_m": 350,
+  "sources": [
+   "C1",
+   "D1"
+  ],
+  "confidence": "illustrative",
+  "note": "Dense canal network between districts (C1, D1); routes unknown, so a regular grid. Chinampa gardens near the shore."
+ },
+ "houses": {
+  "lot_m": 22,
+  "courtyard_share": 0.25,
+  "commoner_height_m": [
+   3.0,
+   4.0
+  ],
+  "elite_height_m": [
+   5.0,
+   7.0
+  ],
+  "sources": [
+   "C1",
+   "D1",
+   "A3"
+  ],
+  "confidence": "medium",
+  "note": "Commoners: one-storey reed, mud or adobe with flat or thatched roofs; elite: plastered stone around a court (D1, C1)."
+ },
+ "precinct": {
+  "bounds_m": [
+   -300,
+   -190,
+   140,
+   210
+  ],
+  "wall": {
+   "thickness_m": 4,
+   "height_m": 4
   },
-  "canals": {"block_m": 130, "canal_m": 10, "chinampa_band_m": 350, "sources": ["C1", "D1"], "confidence": "illustrative",
-             "note": "Dense canal network between districts (C1, D1); routes unknown, so a regular grid. Chinampa gardens near the shore."},
-  "houses": {"lot_m": 22, "courtyard_share": 0.25, "commoner_height_m": [3.0, 4.0], "elite_height_m": [5.0, 7.0],
-             "sources": ["C1", "D1", "A3"], "confidence": "medium",
-             "note": "Commoners: one-storey reed, mud or adobe with flat or thatched roofs; elite: plastered stone around a court (D1, C1)."},
-  "precinct": {
-    "bounds_m": [-300, -190, 140, 210],
-    "wall": {"thickness_m": 4, "height_m": 4},
-    "gates": [{"side": "west", "at_m": 156}, {"side": "south", "at_m": -135}, {"side": "north", "at_m": -20}],
-    "sources": ["D1", "D2", "A1"], "confidence": "illustrative",
-    "note": "Walled quadrangle (coatepantli) about 440 x 400 m (D2). Placement: Templo Mayor on the east side facing west, Temple of the Sun under today's Catedral (D1)."
+  "gates": [
+   {
+    "side": "west",
+    "at_m": 156
+   },
+   {
+    "side": "south",
+    "at_m": -135
+   },
+   {
+    "side": "north",
+    "at_m": -20
+   }
+  ],
+  "sources": [
+   "D1",
+   "D2",
+   "A1"
+  ],
+  "confidence": "illustrative",
+  "note": "Walled quadrangle (coatepantli) about 440 x 400 m (D2). Placement: Templo Mayor on the east side facing west, Temple of the Sun under today's Catedral (D1)."
+ },
+ "plazas": [
+  {
+   "name": "Plaza south of the precinct (today's Zócalo)",
+   "bounds_m": [
+    -330,
+    -380,
+    -20,
+    -190
+   ],
+   "sources": [
+    "D1"
+   ],
+   "confidence": "illustrative"
+  }
+ ],
+ "structures": [
+  {
+   "name": "Templo Mayor",
+   "type": "twin_temple",
+   "offset_m": [
+    0,
+    0
+   ],
+   "base_m": [
+    80,
+    100
+   ],
+   "height_m": 30,
+   "shrine_height_m": 15,
+   "tiers": 4,
+   "stairs": "west",
+   "sources": [
+    "D2",
+    "D1"
+   ],
+   "confidence": "medium",
+   "note": "Phase VII: base about 100 x 80 m, pyramid about 30 m, 45-60 m with shrines (D2). Tlaloc north, Huitzilopochtli south; stairs west."
   },
-  "plazas": [
-    {"name": "Plaza south of the precinct (today's Zócalo)", "bounds_m": [-330, -380, -20, -190], "sources": ["D1"], "confidence": "illustrative"}
-  ],
-  "structures": [
-    {"name": "Templo Mayor", "type": "twin_temple", "offset_m": [0, 0], "base_m": [80, 100], "height_m": 30,
-     "shrine_height_m": 15, "tiers": 4, "stairs": "west", "sources": ["D2", "D1"], "confidence": "medium",
-     "note": "Phase VII: base about 100 x 80 m, pyramid about 30 m, 45-60 m with shrines (D2). Tlaloc north, Huitzilopochtli south; stairs west."},
-    {"name": "Temple of Ehecatl-Quetzalcoatl", "type": "round_temple", "offset_m": [-110, 0], "radius_m": 18,
-     "platform_height_m": 12, "shrine_radius_m": 8, "shrine_height_m": 8, "stairs": "east",
-     "sources": ["D1"], "confidence": "illustrative", "note": "Round temple on the axis in front of the Templo Mayor (D1)."},
-    {"name": "Ballcourt", "type": "ballcourt", "offset_m": [-200, -40], "length_m": 70, "width_m": 18, "wall_height_m": 5,
-     "angle_deg": 0, "sources": ["D1"], "confidence": "illustrative", "note": "East-west court west of the Templo Mayor (D1)."},
-    {"name": "Tzompantli", "type": "platform", "offset_m": [-200, 15], "size_m": [40, 12], "height_m": 3,
-     "sources": ["D1"], "confidence": "illustrative", "note": "Skull-rack platform beside the ballcourt (D1). Massing only."},
-    {"name": "Temple of the Sun", "type": "stepped_pyramid", "offset_m": [-141, -50], "base_m": [40, 40], "height_m": 18,
-     "tiers": 3, "stairs": "west", "sources": ["D1", "OSM"], "confidence": "illustrative",
-     "note": "Under today's Catedral (D1); size assumed."},
-    {"name": "Temple of Tezcatlipoca", "type": "stepped_pyramid", "offset_m": [-60, -140], "base_m": [40, 40], "height_m": 18,
-     "tiers": 3, "stairs": "west", "sources": ["D1"], "confidence": "low", "note": "One of about 45 precinct buildings (D1); position and size assumed."},
-    {"name": "Northern temple", "type": "stepped_pyramid", "offset_m": [-60, 140], "base_m": [34, 34], "height_m": 15,
-     "tiers": 3, "stairs": "west", "sources": ["D1"], "confidence": "low", "note": "Generic precinct temple; position and size assumed."},
-    {"name": "Calmecac", "type": "courtyard", "offset_m": [-245, 140], "size_m": [70, 50], "height_m": 6, "wing_m": 12,
-     "sources": ["D1"], "confidence": "low", "note": "Priests' school in the precinct (D1); position assumed."},
-    {"name": "Palace of Moctezuma II", "type": "courtyard", "offset_m": [60, -300], "size_m": [170, 180], "height_m": 9,
-     "wing_m": 28, "sources": ["D1", "C1", "OSM"], "confidence": "medium",
-     "note": "On the site of today's Palacio Nacional (D1); described by Cortés (C1). Size from the modern block."},
-    {"name": "Palace of Axayacatl", "type": "courtyard", "offset_m": [-400, -60], "size_m": [140, 140], "height_m": 8,
-     "wing_m": 25, "sources": ["D1", "C2"], "confidence": "illustrative",
-     "note": "West of the precinct, near today's Monte de Piedad (D1); Spanish quarters in 1519 (C2)."}
-  ],
-  "causeways": [
-    {"name": "Tlacopan causeway (west)", "width_m": 11, "height_above_water_m": 2.0, "bridge_every_m": 600,
-     "points_latlon": [[19.4363, -99.1350], [19.4365, -99.1470], [19.4380, -99.1545], [19.4420, -99.1620],
-                       [19.4470, -99.1720], [19.4560, -99.1850]],
-     "sources": ["C1", "C2", "D1"], "confidence": "low",
-     "note": "Route along today's Calle Tacuba, Av. Hidalgo, Puente de Alvarado and Calzada México-Tacuba: a common claim, not yet sourced. Width: 'ten horses abreast' (C2). Removable bridges (C1)."},
-    {"name": "Iztapalapa causeway (south)", "width_m": 11, "height_above_water_m": 2.0, "bridge_every_m": 600,
-     "points_latlon": [[19.4330, -99.1330], [19.4205, -99.1335], [19.4000, -99.1365], [19.3750, -99.1400], [19.3560, -99.1420]],
-     "sources": ["C1", "D1"], "confidence": "low", "note": "Route along today's Pino Suárez and Calzada de Tlalpan (assumed)."},
-    {"name": "Tepeyac causeway (north)", "width_m": 11, "height_above_water_m": 2.0, "bridge_every_m": 600,
-     "points_latlon": [[19.4368, -99.1319], [19.4560, -99.1310], [19.4700, -99.1250], [19.4840, -99.1180]],
-     "sources": ["C1", "D1"], "confidence": "low", "note": "Route toward Tepeyac (assumed)."}
-  ]
+  {
+   "name": "Temple of Ehecatl-Quetzalcoatl",
+   "type": "round_temple",
+   "offset_m": [
+    -110,
+    0
+   ],
+   "radius_m": 18,
+   "platform_height_m": 12,
+   "shrine_radius_m": 8,
+   "shrine_height_m": 8,
+   "stairs": "east",
+   "sources": [
+    "D1"
+   ],
+   "confidence": "illustrative",
+   "note": "Round temple on the axis in front of the Templo Mayor (D1)."
+  },
+  {
+   "name": "Ballcourt",
+   "type": "ballcourt",
+   "offset_m": [
+    -200,
+    -40
+   ],
+   "length_m": 70,
+   "width_m": 18,
+   "wall_height_m": 5,
+   "angle_deg": 0,
+   "sources": [
+    "D1"
+   ],
+   "confidence": "illustrative",
+   "note": "East-west court west of the Templo Mayor (D1)."
+  },
+  {
+   "name": "Tzompantli",
+   "type": "platform",
+   "offset_m": [
+    -200,
+    15
+   ],
+   "size_m": [
+    40,
+    12
+   ],
+   "height_m": 3,
+   "sources": [
+    "D1"
+   ],
+   "confidence": "illustrative",
+   "note": "Skull-rack platform beside the ballcourt (D1). Massing only."
+  },
+  {
+   "name": "Temple of the Sun",
+   "type": "stepped_pyramid",
+   "offset_m": [
+    -141,
+    -50
+   ],
+   "base_m": [
+    40,
+    40
+   ],
+   "height_m": 18,
+   "tiers": 3,
+   "stairs": "west",
+   "sources": [
+    "D1",
+    "OSM"
+   ],
+   "confidence": "illustrative",
+   "note": "Under today's Catedral (D1); size assumed."
+  },
+  {
+   "name": "Temple of Tezcatlipoca",
+   "type": "stepped_pyramid",
+   "offset_m": [
+    -60,
+    -140
+   ],
+   "base_m": [
+    40,
+    40
+   ],
+   "height_m": 18,
+   "tiers": 3,
+   "stairs": "west",
+   "sources": [
+    "D1"
+   ],
+   "confidence": "low",
+   "note": "One of about 45 precinct buildings (D1); position and size assumed."
+  },
+  {
+   "name": "Northern temple",
+   "type": "stepped_pyramid",
+   "offset_m": [
+    -60,
+    140
+   ],
+   "base_m": [
+    34,
+    34
+   ],
+   "height_m": 15,
+   "tiers": 3,
+   "stairs": "west",
+   "sources": [
+    "D1"
+   ],
+   "confidence": "low",
+   "note": "Generic precinct temple; position and size assumed."
+  },
+  {
+   "name": "Calmecac",
+   "type": "courtyard",
+   "offset_m": [
+    -245,
+    140
+   ],
+   "size_m": [
+    70,
+    50
+   ],
+   "height_m": 6,
+   "wing_m": 12,
+   "sources": [
+    "D1"
+   ],
+   "confidence": "low",
+   "note": "Priests' school in the precinct (D1); position assumed."
+  },
+  {
+   "name": "Palace of Moctezuma II",
+   "type": "courtyard",
+   "offset_m": [
+    60,
+    -300
+   ],
+   "size_m": [
+    170,
+    180
+   ],
+   "height_m": 9,
+   "wing_m": 28,
+   "sources": [
+    "D1",
+    "C1",
+    "OSM"
+   ],
+   "confidence": "medium",
+   "note": "On the site of today's Palacio Nacional (D1); described by Cortés (C1). Size from the modern block."
+  },
+  {
+   "name": "Palace of Axayacatl",
+   "type": "courtyard",
+   "offset_m": [
+    -400,
+    -60
+   ],
+   "size_m": [
+    140,
+    140
+   ],
+   "height_m": 8,
+   "wing_m": 25,
+   "sources": [
+    "D1",
+    "C2"
+   ],
+   "confidence": "illustrative",
+   "note": "West of the precinct, near today's Monte de Piedad (D1); Spanish quarters in 1519 (C2)."
+  }
+ ],
+ "causeways": [
+  {
+   "name": "Tlacopan causeway (west)",
+   "width_m": 11,
+   "height_above_water_m": 2.0,
+   "bridge_every_m": 600,
+   "points_latlon": [
+    [
+     19.4363,
+     -99.135
+    ],
+    [
+     19.4365,
+     -99.147
+    ],
+    [
+     19.438,
+     -99.1545
+    ],
+    [
+     19.442,
+     -99.162
+    ],
+    [
+     19.447,
+     -99.172
+    ],
+    [
+     19.456,
+     -99.185
+    ]
+   ],
+   "sources": [
+    "C1",
+    "C2",
+    "D1"
+   ],
+   "confidence": "low",
+   "note": "Route along today's Calle Tacuba, Av. Hidalgo, Puente de Alvarado and Calzada México-Tacuba: a common claim, not yet sourced. Width: 'ten horses abreast' (C2). Removable bridges (C1)."
+  },
+  {
+   "name": "Iztapalapa causeway (south)",
+   "width_m": 11,
+   "height_above_water_m": 2.0,
+   "bridge_every_m": 600,
+   "points_latlon": [
+    [
+     19.433,
+     -99.133
+    ],
+    [
+     19.4205,
+     -99.1335
+    ],
+    [
+     19.4,
+     -99.1365
+    ],
+    [
+     19.375,
+     -99.14
+    ],
+    [
+     19.356,
+     -99.142
+    ]
+   ],
+   "sources": [
+    "C1",
+    "D1"
+   ],
+   "confidence": "low",
+   "note": "Route along today's Pino Suárez and Calzada de Tlalpan (assumed)."
+  },
+  {
+   "name": "Tepeyac causeway (north)",
+   "width_m": 11,
+   "height_above_water_m": 2.0,
+   "bridge_every_m": 600,
+   "points_latlon": [
+    [
+     19.4368,
+     -99.1319
+    ],
+    [
+     19.456,
+     -99.131
+    ],
+    [
+     19.47,
+     -99.125
+    ],
+    [
+     19.484,
+     -99.118
+    ]
+   ],
+   "sources": [
+    "C1",
+    "D1"
+   ],
+   "confidence": "low",
+   "note": "Route toward Tepeyac (assumed)."
+  }
+ ]
 }
