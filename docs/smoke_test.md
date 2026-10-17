@@ -44,7 +44,7 @@ Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`,
 | 2026-10-16 (run 2) | A | 12 at 576×320×49 | A100-SXM4 80GB | 6.6–10.4 s (first run 25.5 s, model load) | ~0.12 GPU h for the whole session, incl. setup | 0.994–0.998 (inflated, see below) | unstable 0.08–0.47%, pop 1.06–1.18 | All pass. Inverse is slightly steadier than linear; 0.7 slightly steadier than 1.0 |
 | 2026-10-16 (run 2) | B | 3 prompts, 1.0, inverse, 1024×576×121 | same | 40.4–40.5 s | (in the 0.12 h) | 0.997–0.999 | unstable 0.08–0.15%, pop 1.16–1.19 | Depth edges overlaid on frame 60 match the building outlines |
 | 2026-10-16 (run 2) | C | past_1519, 1024×576×241 | same | 80.5 s | (in the 0.12 h) | – | unstable 0.03%, pop 1.50 | Coherent over 10 s; no drift seen in frames 0/40/100 |
-| 2026-10-17 (run 3) | P (real place, M1/M2) | present_2026 and past_1519, 1.0, inverse, 1024×576×361 | A100-SXM4 80GB | 150.0 s and 125.3 s | ~0.16 GPU h for the whole session, incl. setup | pending | pending | First 15 s clips from the real-coordinate path. The first attempt stopped before submitting (COMFY_BASE_URL unset, fixed in 0285e5c) |
+| 2026-10-17 (run 3) | P (real place, M1/M2) | present_2026 and past_1519, 1.0, inverse, 1024×576×361 | A100-SXM4 80GB | 150.0 s and 125.3 s | ~0.16 GPU h for the whole session, incl. setup | edge overlay: good (present), partial (1519) | unstable 0.21% / 0.29%, pop 1.44 / 1.40 | First 15 s clips from the real-coordinate path. No drift over 15 s (stability flat across 60-frame segments). 1519: precinct, plaza and palace courtyards rendered as water, see notes. The first attempt stopped before submitting (COMFY_BASE_URL unset, fixed in 0285e5c) |
 
 ### Notes on the metrics (2026-10-16)
 - **U1 is inflated.** The ground plane's smooth near-to-far gradient dominates a whole-frame rank
@@ -56,6 +56,21 @@ Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`,
   as it raises temporal differences, so it hides flicker (verified in a unit test). U3 now uses a
   motion-compensated unstable-pixel fraction, which is ~0 for a textured pan and > 20% for added
   noise (`tests/test_passes_metrics.py`). Baselines: Blender RGB 0.01%, control 0.00%.
+
+### Notes on run 3, the 15 s real-place clips (2026-10-17)
+Checked locally (`out/m3/*_sheet.jpg`: output, output with Blender edges, control at frames 0–360 every 60).
+- **361 frames in one pass works.** Unstable fraction stays at 0.17–0.35% in every 60-frame segment of both
+  clips, and there are no cuts or zooms. Sharpness falls in the last third of both clips, which matches the
+  scene (closer, larger flat surfaces), not drift. No chaining needed for the 15 s hero.
+- **Present day:** blocks, streets, the Torre Latinoamericana and Bellas Artes sit on their depth edges.
+  The Catedral and Palacio Nacional are generic (white with blue domes). The rooftops are uniform red.
+- **1519, main defect:** every large flat area without houses became water: the walled precinct floor, the
+  plaza on today's Zócalo and the palace courtyards. The Templo Mayor stands on what looks like a raft, and the
+  terraces of the pyramid are lost. Cause: depth is the only control, and flat dry ground at +1.5 m has
+  the same depth as flat water; the prompt says "lake", so the model fills open flat areas with water. Houses,
+  canals and the lake itself read correctly.
+- **Fix under test (M3):** start the sampler from the Blender color render (water blue, land brown) at a
+  partial noise level (SDEdit), keeping the depth guide. See the M3 test cells in the notebook.
 
 ## Decision
 **GO with LTX-2.5** (2026-10-16). U4 passed 2026-10-17.

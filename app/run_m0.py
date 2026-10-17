@@ -6,6 +6,7 @@ Needs ComfyUI on :8188, comfy-api-proxy on :8189, and COMFY_BASE_URL=http://127.
   python app/run_m0.py --step B --strength 1.0 --mode inverse  # 3 prompts, 1024x576x121
   python app/run_m0.py --step C --strength 1.0 --mode inverse --prompt past_1519
   python app/run_m0.py --step A --dry-run                      # print the plan only
+  python app/run_m0.py --step T --folder 1519_r576_121_end --init-sigma 0.975 0.909375  # RGB init (M3)
 
 `--renders` holds one folder per render (r576_49, r1024_121, r1024_241) as produced by
 scripts/make_control.py. Results go to out/m0/results/, one line per run in runs.jsonl.
@@ -26,6 +27,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 WORKFLOW = REPO / "workflows" / "api" / "m0_union_depth_api.json"
+WORKFLOW_INIT = REPO / "workflows" / "api" / "m3_union_depth_init_api.json"
 PROMPTS = REPO / "places" / "m0_synthetic" / "prompts.json"
 
 STEPS = {
@@ -35,7 +37,18 @@ STEPS = {
     "C": ("r1024_241", 1024, 576, 241),
     # Real place (M1 passes, 15 s hero length): --renders out/m1 --prompts places/<id>/prompts.json
     "P": ("r1024_361", 1024, 576, 361),
+    # Short drafts of a real-place segment (e.g. the last 5 s), for settings tests.
+    "T": ("r576_121", 576, 320, 121),
 }
+
+# Official distilled schedule; an RGB-init run starts at one of these sigmas.
+DISTILLED_SIGMAS = [1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0]
+
+
+def sigmas_from(start: float) -> str:
+    if start not in DISTILLED_SIGMAS[:-1]:
+        raise ValueError(f"init sigma {start} is not a step of the distilled schedule {DISTILLED_SIGMAS}")
+    return ", ".join(str(s) for s in DISTILLED_SIGMAS[DISTILLED_SIGMAS.index(start):])
 
 # The ref0.5 Union IC-LoRA has latent_downscale_factor 2: the guide is VAE-encoded at half the
 # output size, which must itself be divisible by 32. 288 and 544 fail inside the VAE encoder.
@@ -65,14 +78,18 @@ def comfy_error() -> str:
     return "(no execution_error in ComfyUI history)"
 
 
-def plan(step: str, prompts: list[str], strengths: list[float], modes: list[str]) -> list[dict]:
+def plan(step: str, prompts: list[str], strengths: list[float], modes: list[str],
+         init_sigmas: list[float | None] = (None,)) -> list[dict]:
     folder, w, h, n = STEPS[step]
     check_size(w, h, n)
+    for i in init_sigmas:
+        if i is not None:
+            sigmas_from(i)
     return [
         {"step": step, "prompt": p, "strength": s, "mode": m, "folder": folder,
-         "width": w, "height": h, "frames": n,
-         "name": f"{step}_{p}_s{s:.2f}_{m}"}
-        for p, s, m in itertools.product(prompts, strengths, modes)
+         "width": w, "height": h, "frames": n, "init_sigma": i,
+         "name": f"{step}_{p}_s{s:.2f}_{m}" + ("" if i is None else f"_init{i:g}")}
+        for p, s, m, i in itertools.product(prompts, strengths, modes, init_sigmas)
     ]
 
 
@@ -88,25 +105,33 @@ def node_ids_by_title(workflow: dict) -> dict[str, str]:
 
 def run_variant(client, v: dict, renders: Path, results: Path, texts: dict,
                 comfy_input_dir: Path | None, seed: int) -> dict:
-    ids = node_ids_by_title(json.loads(WORKFLOW.read_text()))
-    wf = client.workflows.from_file(str(WORKFLOW))
+    init = v.get("init_sigma") is not None
+    workflow = WORKFLOW_INIT if init else WORKFLOW
+    ids = node_ids_by_title(json.loads(workflow.read_text()))
+    wf = client.workflows.from_file(str(workflow))
 
-    control = renders / v["folder"] / f"control_{v['mode']}.mp4"
-    if not control.exists():
-        raise FileNotFoundError(control)
-    if comfy_input_dir:
-        # Fallback when asset upload through the proxy is unavailable: same machine, copy the file.
-        target = comfy_input_dir / f"tf_{v['folder']}_{v['mode']}.mp4"
-        shutil.copy2(control, target)
-        wf.set_input(ids["depth_video"], "file", target.name)
-    else:
-        wf.set_input(ids["depth_video"], "file", client.assets.from_file(str(control)))
+    def set_file(title: str, src: Path) -> None:
+        if not src.exists():
+            raise FileNotFoundError(src)
+        if comfy_input_dir:
+            # Fallback when asset upload through the proxy is unavailable: same machine, copy the file.
+            target = comfy_input_dir / f"tf_{v['folder']}_{src.name}"
+            shutil.copy2(src, target)
+            wf.set_input(ids[title], "file", target.name)
+        else:
+            wf.set_input(ids[title], "file", client.assets.from_file(str(src)))
+
+    set_file("depth_video", renders / v["folder"] / f"control_{v['mode']}.mp4")
+    if init:
+        set_file("init_video", renders / v["folder"] / "rgb.mp4")
+        wf.set_input(ids["sigmas"], "sigmas", sigmas_from(v["init_sigma"]))
 
     wf.set_input(ids["positive_prompt"], "text", texts["prompts"][v["prompt"]])
     wf.set_input(ids["negative_prompt"], "text", texts.get("negative", ""))
-    wf.set_input(ids["video_latent"], "width", v["width"])
-    wf.set_input(ids["video_latent"], "height", v["height"])
-    wf.set_input(ids["video_latent"], "length", v["frames"])
+    if not init:  # with an init video, size and length come from rgb.mp4
+        wf.set_input(ids["video_latent"], "width", v["width"])
+        wf.set_input(ids["video_latent"], "height", v["height"])
+        wf.set_input(ids["video_latent"], "length", v["frames"])
     wf.set_input(ids["audio_latent"], "frames_number", v["frames"])
     wf.set_input(ids["guide"], "strength", v["strength"])
     wf.set_input(ids["seed"], "noise_seed", seed)
@@ -135,6 +160,8 @@ def main() -> None:
     p.add_argument("--prompt", nargs="+", help="prompt keys (default: all)")
     p.add_argument("--strength", nargs="+", type=float, help="guide strengths (default A: 1.0 0.7)")
     p.add_argument("--mode", nargs="+", choices=["inverse", "linear"], help="depth encodings (default A: both)")
+    p.add_argument("--init-sigma", nargs="+", type=float,
+                   help="start from the folder's rgb.mp4 at these schedule sigmas (e.g. 0.975 0.909375)")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--comfy-input-dir", type=Path, help="copy inputs here instead of uploading assets")
     p.add_argument("--dry-run", action="store_true")
@@ -144,7 +171,7 @@ def main() -> None:
     prompts = args.prompt or list(texts["prompts"])
     strengths = args.strength or ([1.0, 0.7] if args.step == "A" else [1.0])
     modes = args.mode or (["inverse", "linear"] if args.step == "A" else ["inverse"])
-    variants = plan(args.step, prompts, strengths, modes)
+    variants = plan(args.step, prompts, strengths, modes, args.init_sigma or [None])
     if args.folder:
         for v in variants:
             v["folder"] = args.folder

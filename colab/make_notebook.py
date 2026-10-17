@@ -37,7 +37,8 @@ gpu_hours()"""),
     ("code", """os.environ["COMFY_BASE_URL"] = "http://127.0.0.1:8189"  # the SDK targets the local proxy
 !mkdir -p /content/m0 && unzip -oq /content/drive/MyDrive/timeflight/m0_inputs.zip -d /content/m0 && ls /content/m0
 !bash /content/TimeFlight/colab/start_servers.sh
-!python scripts/validate_workflow.py workflows/api/m0_union_depth_api.json"""),
+!python scripts/validate_workflow.py workflows/api/m0_union_depth_api.json
+!python scripts/validate_workflow.py workflows/api/m3_union_depth_init_api.json"""),
     ("md", """## Step A: drafts at 576×320, 49 frames
 Run **one** cell first. Each run cell stops with an AssertionError if a variant failed; the ComfyUI error is printed above it. If it fails on the asset upload, add `--comfy-input-dir /content/ComfyUI/input`."""),
     ("code", """RUN = "python app/run_m0.py --renders /content/m0 --results /content/m0_results"
@@ -65,6 +66,16 @@ PLACE = "python app/run_m0.py --renders /content/place --results /content/m0_res
 !{PLACE} --folder present_r1024_361 --prompt present_2026
 gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
     ("code", """!{PLACE} --folder 1519_r1024_361 --prompt past_1519
+gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
+    ("md", """## M3 test: RGB init, last 5 s of the 1519 flight at 576×320
+In run 3 the precinct, plaza and palace courtyards came out as water: depth alone cannot tell flat ground
+from flat water. Here the Blender color render (water blue, land brown) is the starting point and the
+sampler starts part-way through its schedule. Lower init sigma = closer to the Blender colors.
+Upload `m3_inputs.zip` to `MyDrive/timeflight/`. Four runs of ~10 s each."""),
+    ("code", """!mkdir -p /content/m3 && unzip -oq /content/drive/MyDrive/timeflight/m3_inputs.zip -d /content/m3 && ls /content/m3
+M3 = "python app/run_m0.py --renders /content/m3 --results /content/m0_results --step T --folder 1519_r576_121_end --prompts places/tenochtitlan_zocalo/prompts.json --prompt past_1519 --strength 1.0 --mode inverse"
+!{M3}
+!{M3} --init-sigma 0.975 0.909375 0.725
 gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/

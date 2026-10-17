@@ -9,6 +9,11 @@ source (see docs/decisions.md). Check them against a live server with
 scripts/validate_workflow.py before running.
 
 Nodes that app/run_m0.py changes are found by their `_meta.title`.
+
+`init` variant (M3, written to m3_union_depth_init_api.json): the Blender RGB render (flat colors
+by material: water, land, houses...) is VAE-encoded and used as the starting latent instead of an
+empty one, and app/run_m0.py starts the schedule part-way (SDEdit). Depth alone cannot tell flat
+dry ground from flat water; the colors can.
 """
 
 from __future__ import annotations
@@ -17,6 +22,7 @@ import json
 from pathlib import Path
 
 OUT = Path(__file__).parent / "api" / "m0_union_depth_api.json"
+OUT_INIT = Path(__file__).parent / "api" / "m3_union_depth_init_api.json"
 
 # Official distilled schedule (8 steps) from the template.
 DISTILLED_SIGMAS = "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
@@ -45,7 +51,7 @@ def out(node_id: str, index: int = 0) -> list:
 
 
 def build(width: int = 576, height: int = 320, length: int = 49, fps: float = 24.0,
-          seed: int = 42, guide_strength: float = 1.0, lora_strength: float = 1.0) -> dict:
+          seed: int = 42, guide_strength: float = 1.0, lora_strength: float = 1.0, init: bool = False) -> dict:
     g = Graph()
     unet = g.add("UNETLoader", "transformer", unet_name=MODEL_FILES["transformer"], weight_dtype="default")
     lora = g.add("LTXICLoRALoaderModelOnly", "union_lora", model=out(unet),
@@ -60,7 +66,13 @@ def build(width: int = 576, height: int = 320, length: int = 49, fps: float = 24
     video = g.add("LoadVideo", "depth_video", file="control.mp4")
     frames = g.add("GetVideoComponents", "depth_frames", video=out(video))
 
-    latent = g.add("EmptyLTXVLatentVideo", "video_latent", width=width, height=height, length=length, batch_size=1)
+    if init:
+        rgb = g.add("LoadVideo", "init_video", file="rgb.mp4")
+        rgb_frames = g.add("GetVideoComponents", "init_frames", video=out(rgb))
+        latent = g.add("VAEEncode", "init_latent", pixels=out(rgb_frames, 0), vae=out(vae))
+    else:
+        latent = g.add("EmptyLTXVLatentVideo", "video_latent", width=width, height=height, length=length,
+                       batch_size=1)
     guide = g.add("LTXAddVideoICLoRAGuide", "guide",
                   positive=out(cond, 0), negative=out(cond, 1), vae=out(vae), latent=out(latent),
                   image=out(frames, 0), frame_idx=0, strength=guide_strength,
@@ -98,5 +110,6 @@ if __name__ == "__main__":
         chosen = json.loads(args.models_json.read_text())
         MODEL_FILES.update({k: v for k, v in chosen.items() if k in MODEL_FILES})
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(build(), indent=2) + "\n")
-    print(f"wrote {OUT} with {MODEL_FILES}")
+    for path, init in ((OUT, False), (OUT_INIT, True)):
+        path.write_text(json.dumps(build(init=init), indent=2) + "\n")
+        print(f"wrote {path} with {MODEL_FILES}")
