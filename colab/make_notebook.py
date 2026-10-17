@@ -61,7 +61,9 @@ gpu_hours()"""),
 Upload `place_inputs.zip` (made locally with
 `scripts/pack_m0.py --src out/place --folders present_r1024_361 1519_r1024_361 --out out/place_inputs.zip`)
 to `MyDrive/timeflight/`. 361 frames is a new length: if it fails or drifts, fall back to 2 × 241 with an overlap."""),
-    ("code", """!mkdir -p /content/place && unzip -oq /content/drive/MyDrive/timeflight/place_inputs.zip -d /content/place && ls /content/place
+    ("code", """ZIP = "/content/drive/MyDrive/timeflight/place_inputs.zip"
+assert os.path.exists(ZIP), f"{ZIP} not found: upload it to Drive (MyDrive/timeflight/) and wait for it to sync"
+!mkdir -p /content/place && unzip -oq /content/drive/MyDrive/timeflight/place_inputs.zip -d /content/place && ls /content/place
 PLACE = "python app/run_m0.py --renders /content/place --results /content/m0_results --step P --prompts places/tenochtitlan_zocalo/prompts.json --strength 1.0 --mode inverse"
 !{PLACE} --folder present_r1024_361 --prompt present_2026
 gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
@@ -72,7 +74,9 @@ In run 3 the precinct, plaza and palace courtyards came out as water: depth alon
 from flat water. Here the Blender color render (water blue, land brown) is the starting point and the
 sampler starts part-way through its schedule. Lower init sigma = closer to the Blender colors.
 Upload `m3_inputs.zip` to `MyDrive/timeflight/`. Four runs of ~10 s each."""),
-    ("code", """!mkdir -p /content/m3 && unzip -oq /content/drive/MyDrive/timeflight/m3_inputs.zip -d /content/m3 && ls /content/m3
+    ("code", """ZIP = "/content/drive/MyDrive/timeflight/m3_inputs.zip"
+assert os.path.exists(ZIP), f"{ZIP} not found: upload it to Drive (MyDrive/timeflight/) and wait for it to sync"
+!mkdir -p /content/m3 && unzip -oq /content/drive/MyDrive/timeflight/m3_inputs.zip -d /content/m3 && ls /content/m3
 M3 = "python app/run_m0.py --renders /content/m3 --results /content/m0_results --step T --folder 1519_r576_121_end --prompts places/tenochtitlan_zocalo/prompts.json --prompt past_1519 --strength 1.0 --mode inverse"
 !{M3}
 !{M3} --init-sigma 0.975 0.909375 0.725
