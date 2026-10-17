@@ -44,6 +44,7 @@ Prompts live in `places/m0_synthetic/prompts.json`: `past_1519`, `present_2026`,
 | 2026-10-16 (run 2) | A | 12 at 576×320×49 | A100-SXM4 80GB | 6.6–10.4 s (first run 25.5 s, model load) | ~0.12 GPU h for the whole session, incl. setup | 0.994–0.998 (inflated, see below) | unstable 0.08–0.47%, pop 1.06–1.18 | All pass. Inverse is slightly steadier than linear; 0.7 slightly steadier than 1.0 |
 | 2026-10-16 (run 2) | B | 3 prompts, 1.0, inverse, 1024×576×121 | same | 40.4–40.5 s | (in the 0.12 h) | 0.997–0.999 | unstable 0.08–0.15%, pop 1.16–1.19 | Depth edges overlaid on frame 60 match the building outlines |
 | 2026-10-16 (run 2) | C | past_1519, 1024×576×241 | same | 80.5 s | (in the 0.12 h) | – | unstable 0.03%, pop 1.50 | Coherent over 10 s; no drift seen in frames 0/40/100 |
+| 2026-10-17 (run 3) | P (real place, M1/M2) | present_2026 and past_1519, 1.0, inverse, 1024×576×361 | A100-SXM4 80GB | 150.0 s and 125.3 s | ~0.16 GPU h for the whole session, incl. setup | pending | pending | First 15 s clips from the real-coordinate path. The first attempt stopped before submitting (COMFY_BASE_URL unset, fixed in 0285e5c) |
 
 ### Notes on the metrics (2026-10-16)
 - **U1 is inflated.** The ground plane's smooth near-to-far gradient dominates a whole-frame rank
