@@ -73,14 +73,12 @@ gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
 In run 3 the precinct, plaza and palace courtyards came out as water: depth alone cannot tell flat ground
 from flat water. Here the Blender color render (water blue, land brown) is the starting point and the
 sampler starts part-way through its schedule. Lower init sigma = closer to the Blender colors.
-Test 1 (0.975 / 0.909 / 0.725): only 0.725 kept the land, and it looked like the render. Test 2 uses a
-brighter palette and starts between 0.909 and 0.725. Upload `m3_inputs.zip` (replace the old one) to
-`MyDrive/timeflight/`. Three runs of ~10 s each."""),
+Tests 1–2 (0.975 / 0.909 / 0.725): only 0.725 kept the land, and it looked like the render. The current
+matrix is in `colab/m3_test.sh`. Upload `m3_inputs.zip` to `MyDrive/timeflight/`."""),
     ("code", """ZIP = "/content/drive/MyDrive/timeflight/m3_inputs.zip"
 assert os.path.exists(ZIP), f"{ZIP} not found: upload it to Drive (MyDrive/timeflight/) and wait for it to sync"
 !mkdir -p /content/m3 && unzip -oq /content/drive/MyDrive/timeflight/m3_inputs.zip -d /content/m3 && ls /content/m3
-M3 = "python app/run_m0.py --renders /content/m3 --results /content/m0_results --step T --folder 1519_r576_121_end --prompts places/tenochtitlan_zocalo/prompts.json --prompt past_1519 --strength 1.0 --mode inverse"
-!{M3} --init-sigma 0.909375 0.85 0.8
+!bash colab/m3_test.sh   # the test matrix lives in the repo, so a git pull updates it
 gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/

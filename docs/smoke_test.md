@@ -76,6 +76,10 @@ Checked locally (`out/m3/*_sheet.jpg`: output, output with Blender edges, contro
   has its terraces, but the frames look like the flat-shaded render. Unstable fraction 0.75% (no init) →
   0.03% (0.725). `out/m3/init_test_sheet.jpg`. Test 2: brighter palette with clear land/water contrast and a
   light sky, starting at 0.909 / 0.85 / 0.8 (the last two are between official schedule steps).
+- **M3 test 2 (2026-10-17):** the Colab notebook copy still had the test 1 cell, so it reran 0.975 / 0.909 / 0.725
+  with the new palette. Same outcome: 0.909 water, 0.725 land but render-like. The palette alone does not move
+  the threshold. The matrix now lives in `colab/m3_test.sh`. Test 3: a prompt that calls the precinct a dry paved
+  plaza (`past_1519_plaza`), alone and with init 0.85 / 0.8.
 
 ## Decision
 **GO with LTX-2.5** (2026-10-16). U4 passed 2026-10-17.
