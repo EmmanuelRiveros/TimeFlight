@@ -90,7 +90,7 @@ def past_alpha(dist_present: np.ndarray, dist_past: np.ndarray, z_present: np.nd
     return np.where(past_nearer, 1.0 - (1.0 - a) * b, 1.0 - b).astype(np.float32)
 
 
-def front_glow(dist_past: np.ndarray, radius: float, width: float, fade_in_m: float = 250.0) -> np.ndarray:
+def front_glow(dist_past: np.ndarray, radius: float, width: float, fade_in_m: float = 80.0) -> np.ndarray:
     """Band of light on the past surfaces at the front, in [0, 1]. It fades in while the radius
     grows to `fade_in_m`, so the first few meters of the wave are not a bright blob."""
     if radius <= 0:

@@ -45,7 +45,7 @@ def test_wave_radius_grows_from_zero():
 
 def test_glow_fades_in():
     d = np.array([10.0])
-    assert front_glow(d, 10.0, 25.0)[0] < 0.01
+    assert front_glow(d / 2, 5.0, 25.0)[0] < 0.01  # 5 m into an 80 m fade-in
     assert front_glow(d * 50, 500.0, 25.0)[0] == pytest.approx(1.0)
 
 

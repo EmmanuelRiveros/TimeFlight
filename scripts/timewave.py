@@ -57,6 +57,7 @@ def main() -> None:
     p.add_argument("--r1", type=float, default=15000.0, help="radius when it ends, m")
     p.add_argument("--softness", type=float, default=25.0, help="width of the soft edge, m")
     p.add_argument("--glow", type=float, default=0.6, help="front glow strength (0 = none)")
+    p.add_argument("--glow-fade", type=float, default=80.0, help="radius at which the glow reaches full strength, m")
     p.add_argument("--sheet", type=Path, help="also write a contact sheet of 8 frames")
     args = p.parse_args()
 
@@ -86,7 +87,7 @@ def main() -> None:
         db = horizontal_distance(zb, sb, pos, tgt, cam["lens_mm"], center, sky_dist)
         za[sa], zb[sb] = np.inf, np.inf
         alpha = past_alpha(da, db, za, zb, r, args.softness)
-        glow = front_glow(db, r, max(args.softness, 0.04 * r)) * (~sb) if args.glow > 0 else None
+        glow = front_glow(db, r, max(args.softness, 0.04 * r), args.glow_fade) * (~sb) if args.glow > 0 else None
         out[i] = composite(present[i], past[i], alpha, glow, glow_strength=args.glow)
         if i % 60 == 0:
             print(f"frame {i}: radius {r:.0f} m, past share {alpha.mean():.2f}", flush=True)
