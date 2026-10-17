@@ -87,6 +87,13 @@ Checked locally (`out/m3/*_sheet.jpg`: output, output with Blender edges, contro
   ground is sandy rather than white stucco (`past_1519_plaza2` addresses both). Next: the full 15 s with both
   prompts (`colab/m3_full.sh`) to check that the lake and canals in the first 10 s still read correctly.
   Sheet: `out/m3/init_test3_sheet.jpg`.
+- **M3 full 15 s (2026-10-17, 1024×576×361, 125.6 s and 125.5 s):** both dry-plaza prompts keep the precinct and
+  plaza dry for the whole flight, the lake still surrounds the city, and stability matches the original
+  (unstable 0.22% / 0.29%, flat across 60-frame segments). `past_1519_plaza2` is chosen for the hero: the
+  Moctezuma palace courtyard is dry and gardens appear. Trade-off: the canal grid is much weaker than with
+  `past_1519` (most canals read as dirt streets). Possible fix without GPU: both clips follow the same depth,
+  so the precinct can be masked from `plaza2` and the rest of the city from `past_1519`, with the precinct wall
+  as the seam. Sheet: `out/m3/full_sheet.jpg`.
 
 ## Decision
 **GO with LTX-2.5** (2026-10-16). U4 passed 2026-10-17.
