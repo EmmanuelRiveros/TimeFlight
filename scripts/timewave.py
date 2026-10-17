@@ -21,25 +21,13 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from timeflight.geo.enu import Origin, geodetic_to_enu
-from timeflight.passes import decode_depth_png
-from timeflight.timewave import composite, front_glow, past_alpha, unproject, wave_radius
+from timeflight.era.build import anchor_xy
+from timeflight.geo.enu import Origin
+from timeflight.passes import load_pass
+from timeflight.timewave import WaveParams, timewave_frames
 from timeflight.video import probe, read_video, write_video
 
 REPO = Path(__file__).resolve().parents[1]
-
-
-def load_depth(folder: Path, frame: int) -> tuple[np.ndarray, np.ndarray]:
-    meta = json.loads((folder / "render.json").read_text())
-    z = decode_depth_png(np.asarray(Image.open(folder / "depth" / f"{frame + 1:04d}.png")), meta["zscale"])
-    return z, z >= meta["zscale"] * 0.999
-
-
-def horizontal_distance(z, sky, pos, tgt, lens, center, sky_dist):
-    p = unproject(z, pos, tgt, lens)
-    d = np.hypot(p[..., 0] - center[0], p[..., 1] - center[1])
-    d[sky] = sky_dist
-    return d
 
 
 def main() -> None:
@@ -61,37 +49,14 @@ def main() -> None:
     p.add_argument("--sheet", type=Path, help="also write a contact sheet of 8 frames")
     args = p.parse_args()
 
-    place = json.loads(args.place.read_text(encoding="utf-8"))
     manifest = json.loads((args.place.parent / "eras" / f"{args.era}.json").read_text(encoding="utf-8"))
-    cam = json.loads((REPO / "data" / "places" / place["id"] / "scene" / "camera.json").read_text())
-    origin = Origin(**cam["origin"])
-    center = geodetic_to_enu(manifest["anchor"]["lat"], manifest["anchor"]["lon"], origin.h, origin)[:2]
-
-    info_a, info_b = probe(args.present), probe(args.past)
-    if (info_a["width"], info_a["height"], info_a["frames"]) != (info_b["width"], info_b["height"], info_b["frames"]):
-        raise SystemExit(f"clips differ: {info_a} vs {info_b}")
-    fps, n = info_a["fps"], info_a["frames"]
-    start = json.loads((args.present_depth / "render.json").read_text())["start"]
+    camera_json = REPO / "data" / "places" / json.loads(args.place.read_text(encoding="utf-8"))["id"] / "scene" / "camera.json"
+    pa, pb = load_pass(args.present_depth, camera_json), load_pass(args.past_depth, camera_json)
+    center = anchor_xy(manifest, Origin(**pa.origin))
     present, past = read_video(args.present), read_video(args.past)
-
-    out = np.empty_like(present)
-    f0, f1 = args.start_s * fps, args.end_s * fps
-    for i in range(n):
-        f = start + i
-        pos, tgt = cam["position"][f], cam["target"][f]
-        r = wave_radius(i, f0, f1, args.r0, args.r1)
-        za, sa = load_depth(args.present_depth, i)
-        zb, sb = load_depth(args.past_depth, i)
-        sky_dist = args.r1 * 0.8  # the sky changes late, once the wave reaches the horizon
-        da = horizontal_distance(za, sa, pos, tgt, cam["lens_mm"], center, sky_dist)
-        db = horizontal_distance(zb, sb, pos, tgt, cam["lens_mm"], center, sky_dist)
-        za[sa], zb[sb] = np.inf, np.inf
-        alpha = past_alpha(da, db, za, zb, r, args.softness)
-        glow = front_glow(db, r, max(args.softness, 0.04 * r), args.glow_fade) * (~sb) if args.glow > 0 else None
-        out[i] = composite(present[i], past[i], alpha, glow, glow_strength=args.glow)
-        if i % 60 == 0:
-            print(f"frame {i}: radius {r:.0f} m, past share {alpha.mean():.2f}", flush=True)
-
+    fps, n = probe(args.present)["fps"], len(present)
+    params = WaveParams(args.start_s, args.end_s, args.r0, args.r1, args.softness, args.glow, args.glow_fade)
+    out = np.stack(list(timewave_frames(present, past, pa, pb, center, fps, params)))
     write_video(out, args.out, fps, crf=12)
     print(f"wrote {args.out}")
     if args.sheet:

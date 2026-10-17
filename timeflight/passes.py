@@ -8,6 +8,9 @@ Convention matches Video-Depth-Anything "gray": near = bright, far / sky = dark.
 
 from __future__ import annotations
 
+import json
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
 
 import numpy as np
@@ -60,3 +63,44 @@ def edges_from_depth(z: np.ndarray, threshold: float = 0.02) -> np.ndarray:
 
 def to_uint8(control: np.ndarray) -> np.ndarray:
     return np.round(np.clip(control, 0.0, 1.0) * 255.0).astype(np.uint8)
+
+
+@dataclass
+class RenderPass:
+    """A Blender render folder: planar depth per frame plus the camera that made it."""
+    depth: np.ndarray        # (F, H, W) float32 meters; sky pixels = zscale
+    sky: np.ndarray          # (F, H, W) bool
+    position: np.ndarray     # (F, 3) ENU
+    target: np.ndarray       # (F, 3) ENU
+    lens_mm: float
+    origin: dict             # {"lat", "lon", "h"}
+    fps: float
+    era: str
+
+    @property
+    def frames(self) -> int:
+        return len(self.depth)
+
+
+def load_pass(folder: Path, camera_json: Path | None = None) -> RenderPass:
+    """Read depth/####.png and render.json. Older renders without a "camera" entry need the
+    place's camera.json (the window starts at render.json "start")."""
+    from PIL import Image  # lazy: only loaders need PIL
+
+    folder = Path(folder)
+    meta = json.loads((folder / "render.json").read_text())
+    cam = meta.get("camera")
+    if cam is None:
+        if camera_json is None:
+            raise ValueError(f"{folder}/render.json has no camera; pass the place's camera.json")
+        full = json.loads(Path(camera_json).read_text())
+        a, b = meta["start"], meta["start"] + meta["frames"]
+        cam = {"position": full["position"][a:b], "target": full["target"][a:b]}
+    files = sorted((folder / "depth").glob("*.png"))
+    if len(files) != meta["frames"]:
+        raise ValueError(f"{folder}: {len(files)} depth frames, render.json says {meta['frames']}")
+    depth = np.stack([decode_depth_png(np.asarray(Image.open(f)), meta["zscale"]) for f in files])
+    return RenderPass(depth=depth, sky=depth >= meta["zscale"] * 0.999,
+                      position=np.asarray(cam["position"], float), target=np.asarray(cam["target"], float),
+                      lens_mm=float(meta["lens_mm"]), origin=meta["origin"], fps=float(meta["fps"]),
+                      era=meta.get("era", "present"))

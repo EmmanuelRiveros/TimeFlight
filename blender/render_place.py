@@ -121,7 +121,7 @@ def add_camera(scene, cam_json, start, frames):
         cam.rotation_quaternion = (t - p).to_track_quat("-Z", "Y")
         cam.keyframe_insert("location", frame=f + 1)
         cam.keyframe_insert("rotation_quaternion", frame=f + 1)
-    return pos
+    return pos, tgt
 
 
 def main():
@@ -143,7 +143,7 @@ def main():
         build_water(era["water_level"])
     else:
         n_buildings = build_buildings(scene_dir / "buildings.npz")
-    add_camera(scene, cam_json, args.start, args.frames)
+    pos, tgt = add_camera(scene, cam_json, args.start, args.frames)
     render_depth(scene, out, args.zscale, args.samples)
     if not args.skip_rgb:
         render_rgb(scene, out)
@@ -152,7 +152,8 @@ def main():
             "start": args.start, "path_frames": cam_json["frames"], "zscale": args.zscale,
             "depth": "planar camera Z, value = z / zscale", "sky_value": 1.0,
             "origin": cam_json["origin"], "lens_mm": cam_json["lens_mm"], "buildings": n_buildings,
-            "era": args.era or "present"}
+            "era": args.era or "present",
+            "camera": {"position": np.round(pos, 4).tolist(), "target": np.round(tgt, 4).tolist()}}
     (out / "render.json").write_text(json.dumps(meta, indent=2))
     print(f"[timeflight] wrote {out}")
 

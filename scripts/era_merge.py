@@ -22,8 +22,8 @@ from PIL import Image
 
 from timeflight.era.build import dry_zones
 from timeflight.geo.enu import Origin
-from timeflight.passes import decode_depth_png
-from timeflight.timewave import rects_mask, unproject
+from timeflight.passes import load_pass
+from timeflight.timewave import zone_merge_frames
 from timeflight.video import probe, read_video, write_video
 
 REPO = Path(__file__).resolve().parents[1]
@@ -42,28 +42,13 @@ def main() -> None:
     p.add_argument("--sheet", type=Path)
     args = p.parse_args()
 
-    place = json.loads(args.place.read_text(encoding="utf-8"))
     manifest = json.loads((args.place.parent / "eras" / f"{args.era}.json").read_text(encoding="utf-8"))
-    cam = json.loads((REPO / "data" / "places" / place["id"] / "scene" / "camera.json").read_text())
-    zones = dry_zones(manifest, Origin(**cam["origin"]))
+    camera_json = REPO / "data" / "places" / json.loads(args.place.read_text(encoding="utf-8"))["id"] / "scene" / "camera.json"
+    rp = load_pass(args.depth, camera_json)
+    zones = dry_zones(manifest, Origin(**rp.origin))
     rects = [r for k in args.zone_kinds for r in zones[k]]
-    meta = json.loads((args.depth / "render.json").read_text())
-
-    ia, ib = probe(args.base), probe(args.zones)
-    if (ia["width"], ia["height"], ia["frames"]) != (ib["width"], ib["height"], ib["frames"]):
-        raise SystemExit(f"clips differ: {ia} vs {ib}")
-    base, zone = read_video(args.base), read_video(args.zones)
-    out = np.empty_like(base)
-    for i in range(ia["frames"]):
-        f = meta["start"] + i
-        z = decode_depth_png(np.asarray(Image.open(args.depth / "depth" / f"{i + 1:04d}.png")), meta["zscale"])
-        sky = z >= meta["zscale"] * 0.999
-        xy = unproject(z, cam["position"][f], cam["target"][f], cam["lens_mm"])[..., :2]
-        w = rects_mask(xy, rects, args.feather)
-        w[sky] = 0.0
-        out[i] = np.clip(base[i] * (1 - w[..., None]) + zone[i] * w[..., None] + 0.5, 0, 255).astype(np.uint8)
-        if i % 60 == 0:
-            print(f"frame {i}: zone share {w.mean():.2f}", flush=True)
+    ia = probe(args.base)
+    out = np.stack(list(zone_merge_frames(read_video(args.base), read_video(args.zones), rp, rects, args.feather)))
     write_video(out, args.out, ia["fps"], crf=12)
     print(f"wrote {args.out}")
     if args.sheet:

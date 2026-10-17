@@ -1,6 +1,7 @@
 {
   "id": "tenochtitlan_zocalo",
   "name": "Zócalo, Mexico City / Tenochtitlan",
+  "label": "Mexico City",
   "_note": "Coordinates are WGS84. alt = meters above the origin's ground height. Keyframes (M1 draft): start above Av. Hidalgo north of the Alameda, fly east along Calle Tacuba, pass north of the Templo Mayor (OSM 19.43489, -99.13172) and turn south, so the Templo Mayor is in the foreground and the Catedral and Zócalo beyond. 15 s = 361 frames.",
   "origin": {"lat": 19.4326, "lon": -99.1332, "label": "Plaza de la Constitución (Zócalo)"},
   "dem_box": {"south": 19.23, "north": 19.63, "west": -99.35, "east": -98.93},

@@ -17,6 +17,11 @@ pip install -q -r ComfyUI-LTXVideo/requirements.txt
 pip install -q "comfy-sdk>=0.5" "comfy-api-proxy>=0.1.6" huggingface_hub hf_transfer
 pip install -q -e "$REPO[metrics]"
 
+# TimeFlight nodes: link the node pack into ComfyUI (it imports the timeflight package installed above),
+# and fetch the credit-card font (logged in assets.jsonl).
+ln -sfn "$REPO/comfy_nodes" "$ROOT/ComfyUI/custom_nodes/ComfyUI-TimeFlight"
+python "$REPO/scripts/fetch_fonts.py"
+
 # Record exact versions for reproducibility (copied into docs/smoke_test.md).
 {
   echo "date: $(date -u +%FT%TZ)"

@@ -1,0 +1,959 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "ltx-2.5-22b-distilled-transformer-bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": {
+      "title": "transformer"
+    }
+  },
+  "2": {
+    "class_type": "LTXICLoRALoaderModelOnly",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "lora_name": "ltx-2.3-22b-ic-lora-union-control-ref0.5.safetensors",
+      "strength_model": 1.0
+    },
+    "_meta": {
+      "title": "union_lora"
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "gemma4-12b-with-proj-ltx-2.5-bf16.safetensors",
+      "type": "ltxv",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "text_encoder"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-video-vae-bf16.safetensors"
+    },
+    "_meta": {
+      "title": "video_vae"
+    }
+  },
+  "5": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+    },
+    "_meta": {
+      "title": "audio_vae"
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "negative_prompt"
+    }
+  },
+  "7": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler_ancestral"
+    },
+    "_meta": {
+      "title": "sampler"
+    }
+  },
+  "8": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
+    },
+    "_meta": {
+      "title": "sigmas"
+    }
+  },
+  "9": {
+    "class_type": "TimeFlightLoadPass",
+    "inputs": {
+      "render_dir": "/content/place/present_r1024_361"
+    },
+    "_meta": {
+      "title": "present_pass"
+    }
+  },
+  "10": {
+    "class_type": "TimeFlightLoadPass",
+    "inputs": {
+      "render_dir": "/content/place/1519_r1024_361"
+    },
+    "_meta": {
+      "title": "past_pass"
+    }
+  },
+  "11": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "present_prompt"
+    }
+  },
+  "12": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "frame_rate": 24.0
+    },
+    "_meta": {
+      "title": "present_conditioning"
+    }
+  },
+  "13": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 1024,
+      "height": 576,
+      "length": 361,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "present_latent"
+    }
+  },
+  "14": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "12",
+        0
+      ],
+      "negative": [
+        "12",
+        1
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "latent": [
+        "13",
+        0
+      ],
+      "image": [
+        "9",
+        1
+      ],
+      "frame_idx": 0,
+      "strength": 1.0,
+      "latent_downscale_factor": [
+        "2",
+        1
+      ],
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64
+    },
+    "_meta": {
+      "title": "present_guide"
+    }
+  },
+  "15": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 361,
+      "frame_rate": 24.0,
+      "batch_size": 1,
+      "audio_vae": [
+        "5",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "present_audio_latent"
+    }
+  },
+  "16": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "14",
+        2
+      ],
+      "audio_latent": [
+        "15",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "present_av_latent"
+    }
+  },
+  "17": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    },
+    "_meta": {
+      "title": "present_seed"
+    }
+  },
+  "18": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "positive": [
+        "14",
+        0
+      ],
+      "negative": [
+        "14",
+        1
+      ],
+      "cfg": 1.0
+    },
+    "_meta": {
+      "title": "present_guider"
+    }
+  },
+  "19": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "17",
+        0
+      ],
+      "guider": [
+        "18",
+        0
+      ],
+      "sampler": [
+        "7",
+        0
+      ],
+      "sigmas": [
+        "8",
+        0
+      ],
+      "latent_image": [
+        "16",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "present_sample"
+    }
+  },
+  "20": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "19",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "present_split_av"
+    }
+  },
+  "21": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "14",
+        0
+      ],
+      "negative": [
+        "14",
+        1
+      ],
+      "latent": [
+        "20",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "present_crop_guides"
+    }
+  },
+  "22": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "21",
+        2
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    },
+    "_meta": {
+      "title": "present_decode"
+    }
+  },
+  "23": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "22",
+        0
+      ],
+      "fps": 24.0
+    },
+    "_meta": {
+      "title": "present_video"
+    }
+  },
+  "24": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "23",
+        0
+      ],
+      "filename_prefix": "timeflight/flight/present",
+      "format": "auto",
+      "codec": "auto"
+    },
+    "_meta": {
+      "title": "save_present"
+    }
+  },
+  "25": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_base_prompt"
+    }
+  },
+  "26": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "25",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "frame_rate": 24.0
+    },
+    "_meta": {
+      "title": "past_base_conditioning"
+    }
+  },
+  "27": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 1024,
+      "height": 576,
+      "length": 361,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "past_base_latent"
+    }
+  },
+  "28": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "26",
+        0
+      ],
+      "negative": [
+        "26",
+        1
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "latent": [
+        "27",
+        0
+      ],
+      "image": [
+        "10",
+        1
+      ],
+      "frame_idx": 0,
+      "strength": 1.0,
+      "latent_downscale_factor": [
+        "2",
+        1
+      ],
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64
+    },
+    "_meta": {
+      "title": "past_base_guide"
+    }
+  },
+  "29": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 361,
+      "frame_rate": 24.0,
+      "batch_size": 1,
+      "audio_vae": [
+        "5",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_base_audio_latent"
+    }
+  },
+  "30": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "28",
+        2
+      ],
+      "audio_latent": [
+        "29",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_base_av_latent"
+    }
+  },
+  "31": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    },
+    "_meta": {
+      "title": "past_base_seed"
+    }
+  },
+  "32": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "positive": [
+        "28",
+        0
+      ],
+      "negative": [
+        "28",
+        1
+      ],
+      "cfg": 1.0
+    },
+    "_meta": {
+      "title": "past_base_guider"
+    }
+  },
+  "33": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "31",
+        0
+      ],
+      "guider": [
+        "32",
+        0
+      ],
+      "sampler": [
+        "7",
+        0
+      ],
+      "sigmas": [
+        "8",
+        0
+      ],
+      "latent_image": [
+        "30",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_base_sample"
+    }
+  },
+  "34": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "33",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_base_split_av"
+    }
+  },
+  "35": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "28",
+        0
+      ],
+      "negative": [
+        "28",
+        1
+      ],
+      "latent": [
+        "34",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_base_crop_guides"
+    }
+  },
+  "36": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "35",
+        2
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    },
+    "_meta": {
+      "title": "past_base_decode"
+    }
+  },
+  "37": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "36",
+        0
+      ],
+      "fps": 24.0
+    },
+    "_meta": {
+      "title": "past_base_video"
+    }
+  },
+  "38": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "37",
+        0
+      ],
+      "filename_prefix": "timeflight/flight/past_base",
+      "format": "auto",
+      "codec": "auto"
+    },
+    "_meta": {
+      "title": "save_past_base"
+    }
+  },
+  "39": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_zones_prompt"
+    }
+  },
+  "40": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "39",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "frame_rate": 24.0
+    },
+    "_meta": {
+      "title": "past_zones_conditioning"
+    }
+  },
+  "41": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 1024,
+      "height": 576,
+      "length": 361,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "past_zones_latent"
+    }
+  },
+  "42": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "40",
+        0
+      ],
+      "negative": [
+        "40",
+        1
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "latent": [
+        "41",
+        0
+      ],
+      "image": [
+        "10",
+        1
+      ],
+      "frame_idx": 0,
+      "strength": 1.0,
+      "latent_downscale_factor": [
+        "2",
+        1
+      ],
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64
+    },
+    "_meta": {
+      "title": "past_zones_guide"
+    }
+  },
+  "43": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 361,
+      "frame_rate": 24.0,
+      "batch_size": 1,
+      "audio_vae": [
+        "5",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_zones_audio_latent"
+    }
+  },
+  "44": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "42",
+        2
+      ],
+      "audio_latent": [
+        "43",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_zones_av_latent"
+    }
+  },
+  "45": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    },
+    "_meta": {
+      "title": "past_zones_seed"
+    }
+  },
+  "46": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "positive": [
+        "42",
+        0
+      ],
+      "negative": [
+        "42",
+        1
+      ],
+      "cfg": 1.0
+    },
+    "_meta": {
+      "title": "past_zones_guider"
+    }
+  },
+  "47": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "45",
+        0
+      ],
+      "guider": [
+        "46",
+        0
+      ],
+      "sampler": [
+        "7",
+        0
+      ],
+      "sigmas": [
+        "8",
+        0
+      ],
+      "latent_image": [
+        "44",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_zones_sample"
+    }
+  },
+  "48": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "47",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_zones_split_av"
+    }
+  },
+  "49": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "42",
+        0
+      ],
+      "negative": [
+        "42",
+        1
+      ],
+      "latent": [
+        "48",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_zones_crop_guides"
+    }
+  },
+  "50": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "49",
+        2
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    },
+    "_meta": {
+      "title": "past_zones_decode"
+    }
+  },
+  "51": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "50",
+        0
+      ],
+      "fps": 24.0
+    },
+    "_meta": {
+      "title": "past_zones_video"
+    }
+  },
+  "52": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "51",
+        0
+      ],
+      "filename_prefix": "timeflight/flight/past_zones",
+      "format": "auto",
+      "codec": "auto"
+    },
+    "_meta": {
+      "title": "save_past_zones"
+    }
+  },
+  "53": {
+    "class_type": "TimeFlightEraMerge",
+    "inputs": {
+      "base": [
+        "36",
+        0
+      ],
+      "zones": [
+        "50",
+        0
+      ],
+      "era_pass": [
+        "10",
+        0
+      ],
+      "place_dir": "/content/TimeFlight/places/tenochtitlan_zocalo",
+      "era": "1519",
+      "feather_m": 6.0
+    },
+    "_meta": {
+      "title": "era_merge"
+    }
+  },
+  "54": {
+    "class_type": "TimeFlightTimeWave",
+    "inputs": {
+      "present": [
+        "22",
+        0
+      ],
+      "past": [
+        "53",
+        0
+      ],
+      "present_pass": [
+        "9",
+        0
+      ],
+      "past_pass": [
+        "10",
+        0
+      ],
+      "place_dir": "/content/TimeFlight/places/tenochtitlan_zocalo",
+      "era": "1519",
+      "fps": 24.0,
+      "start_s": 3.5,
+      "end_s": 12.5,
+      "r0_m": 30.0,
+      "r1_m": 15000.0,
+      "softness_m": 25.0,
+      "glow": 0.6,
+      "glow_fade_m": 80.0
+    },
+    "_meta": {
+      "title": "time_wave"
+    }
+  },
+  "55": {
+    "class_type": "TimeFlightCredits",
+    "inputs": {
+      "images": [
+        "54",
+        0
+      ],
+      "place_dir": "/content/TimeFlight/places/tenochtitlan_zocalo",
+      "era": "1519",
+      "fps": 24.0,
+      "present_caption": "Mexico City, today",
+      "present_start_s": 0.5,
+      "present_end_s": 3.3,
+      "past_caption": "",
+      "past_start_s": 12.0,
+      "past_end_s": 15.0,
+      "card_seconds": 6.0,
+      "allow_draft": false
+    },
+    "_meta": {
+      "title": "credits"
+    }
+  },
+  "56": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "55",
+        0
+      ],
+      "fps": 24.0
+    },
+    "_meta": {
+      "title": "hero_video"
+    }
+  },
+  "57": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "56",
+        0
+      ],
+      "filename_prefix": "timeflight/flight/hero",
+      "format": "auto",
+      "codec": "auto"
+    },
+    "_meta": {
+      "title": "save"
+    }
+  }
+}

@@ -80,6 +80,13 @@ assert os.path.exists(ZIP), f"{ZIP} not found: upload it to Drive (MyDrive/timef
 !mkdir -p /content/m3 && unzip -oq /content/drive/MyDrive/timeflight/m3_inputs.zip -d /content/m3 && ls /content/m3
 !bash colab/m3_test.sh   # the test matrix lives in the repo, so a git pull updates it
 gpu_hours(); assert _exit_code == 0, 'variant failed: send the error above'"""),
+    ("md", """## Full flight (M4): three generations, era merge, time wave, credits
+One graph through the Comfy SDK (`workflows/build_flight.py`, `app/run_flight.py`). Upload `flight_inputs.zip`
+(made with `scripts/pack_m0.py --src out/place --folders present_r1024_361 1519_r1024_361 --out out/flight_inputs.zip --with-depth`)
+to `MyDrive/timeflight/`. About 3 × 2 min of generation plus a few minutes of compositing.
+Results are copied to `MyDrive/timeflight/flight_results/`."""),
+    ("code", """!bash /content/TimeFlight/colab/flight.sh
+gpu_hours(); assert _exit_code == 0, 'flight failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/

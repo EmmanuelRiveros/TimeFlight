@@ -40,6 +40,11 @@ def in_rects(pts: np.ndarray, rects: list[tuple[float, float, float, float]]) ->
     return hit
 
 
+def anchor_xy(m: dict, origin: Origin) -> np.ndarray:
+    """ENU (x, y) of the era anchor (e.g. the Templo Mayor): the time wave's center."""
+    return _enu_xy(m["anchor"]["lat"], m["anchor"]["lon"], origin)
+
+
 def dry_zones(m: dict, origin: Origin) -> dict[str, list[tuple[float, float, float, float]]]:
     """ENU rects [x0, y0, x1, y1] of solid open ground: the precinct, the plazas and a margin around
     every named structure. Houses are kept out of them, and no canal runs through them."""

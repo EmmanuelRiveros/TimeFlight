@@ -16,6 +16,8 @@ width, horizontal sensor fit, camera up as close to world +Z as possible).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 
 SENSOR_WIDTH_MM = 36.0
@@ -120,3 +122,56 @@ def rects_mask(xy: np.ndarray, rects, feather: float) -> np.ndarray:
         sd = np.where((dx > 0) | (dy > 0), np.hypot(np.maximum(dx, 0), np.maximum(dy, 0)), np.maximum(dx, dy))
         out = np.maximum(out, 1.0 / (1.0 + np.exp(np.clip(sd / max(feather, 1e-6), -60, 60))))
     return out
+
+
+def horizontal_distance(depth: np.ndarray, sky: np.ndarray, position, target, lens_mm: float, center,
+                        sky_dist: float) -> np.ndarray:
+    """Horizontal distance (m) from `center` (ENU x, y) of each pixel's surface; sky = sky_dist."""
+    p = unproject(depth, position, target, lens_mm)
+    d = np.hypot(p[..., 0] - center[0], p[..., 1] - center[1])
+    d[sky] = sky_dist
+    return d
+
+
+@dataclass
+class WaveParams:
+    start_s: float = 3.5
+    end_s: float = 12.5
+    r0: float = 30.0
+    r1: float = 15000.0
+    softness: float = 25.0
+    glow: float = 0.6
+    glow_fade: float = 80.0
+
+
+def timewave_frames(present: np.ndarray, past: np.ndarray, pass_present, pass_past, center, fps: float,
+                    params: WaveParams = WaveParams()):
+    """Yield composited uint8 frames. `pass_*` are timeflight.passes.RenderPass of the same path."""
+    if present.shape != past.shape or len(present) != pass_present.frames or len(past) != pass_past.frames:
+        raise ValueError(f"clips {present.shape} / {past.shape} and passes "
+                         f"{pass_present.frames} / {pass_past.frames} frames must match")
+    f0, f1 = params.start_s * fps, params.end_s * fps
+    sky_dist = params.r1 * 0.8  # the sky changes late, once the wave reaches the horizon
+    for i in range(len(present)):
+        r = wave_radius(i, f0, f1, params.r0, params.r1)
+        pos, tgt, lens = pass_present.position[i], pass_present.target[i], pass_present.lens_mm
+        da = horizontal_distance(pass_present.depth[i], pass_present.sky[i], pos, tgt, lens, center, sky_dist)
+        db = horizontal_distance(pass_past.depth[i], pass_past.sky[i], pos, tgt, lens, center, sky_dist)
+        za = np.where(pass_present.sky[i], np.inf, pass_present.depth[i])
+        zb = np.where(pass_past.sky[i], np.inf, pass_past.depth[i])
+        alpha = past_alpha(da, db, za, zb, r, params.softness)
+        glow = None
+        if params.glow > 0:
+            glow = front_glow(db, r, max(params.softness, 0.04 * r), params.glow_fade) * (~pass_past.sky[i])
+        yield composite(present[i], past[i], alpha, glow, glow_strength=params.glow)
+
+
+def zone_merge_frames(base: np.ndarray, zones_clip: np.ndarray, pass_era, rects, feather: float = 6.0):
+    """Yield uint8 frames: `zones_clip` inside the world rects, `base` elsewhere (same depth path)."""
+    if base.shape != zones_clip.shape or len(base) != pass_era.frames:
+        raise ValueError(f"clips {base.shape} / {zones_clip.shape} and pass {pass_era.frames} frames must match")
+    for i in range(len(base)):
+        xy = unproject(pass_era.depth[i], pass_era.position[i], pass_era.target[i], pass_era.lens_mm)[..., :2]
+        w = rects_mask(xy, rects, feather)
+        w[pass_era.sky[i]] = 0.0
+        yield np.clip(base[i] * (1 - w[..., None]) + zones_clip[i] * w[..., None] + 0.5, 0, 255).astype(np.uint8)

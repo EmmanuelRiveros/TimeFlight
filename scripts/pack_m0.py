@@ -1,4 +1,5 @@
-"""Zip control videos for upload to Drive (only mp4 + json, no PNG frames).
+"""Zip control videos for upload to Drive (mp4 + json; with --with-depth also the 16-bit depth PNGs,
+which the TimeFlight time-wave and era-merge nodes need).
 
   .venv/Scripts/python scripts/pack_m0.py                                   # -> out/m0_inputs.zip
   .venv/Scripts/python scripts/pack_m0.py --src out/m1 --folders r1024_361 --out out/m1_inputs.zip
@@ -14,6 +15,7 @@ p = argparse.ArgumentParser()
 p.add_argument("--src", type=Path, default=OUT / "m0")
 p.add_argument("--folders", nargs="+", default=["r576_49", "r1024_121", "r1024_241"])
 p.add_argument("--out", type=Path, default=OUT / "m0_inputs.zip")
+p.add_argument("--with-depth", action="store_true", help="include depth/*.png")
 args = p.parse_args()
 
 with zipfile.ZipFile(args.out, "w", zipfile.ZIP_STORED) as z:
@@ -22,4 +24,9 @@ with zipfile.ZipFile(args.out, "w", zipfile.ZIP_STORED) as z:
             if f.suffix in {".mp4", ".json"}:
                 z.write(f, f"{folder}/{f.name}")
                 print(f"{folder}/{f.name}")
+        if args.with_depth:
+            pngs = sorted((args.src / folder / "depth").glob("*.png"))
+            for f in pngs:
+                z.write(f, f"{folder}/depth/{f.name}")
+            print(f"{folder}/depth/ ({len(pngs)} PNGs)")
 print(f"wrote {args.out} ({args.out.stat().st_size / 1e6:.1f} MB)")
