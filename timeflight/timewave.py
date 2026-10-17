@@ -65,13 +65,14 @@ def project(points: np.ndarray, position, target, lens_mm: float, width: int, he
 
 
 def wave_radius(frame: float, start: float, end: float, r0: float, r1: float) -> float:
-    """Front radius at a frame: 0 before `start`, then geometric growth r0 -> r1 (slow at the
-    center, fast at the horizon, so the wave reaches distant terrain in time), r1 after `end`."""
-    if frame < start:
+    """Front radius at a frame: 0 until `start`, r1 from `end` on. In between it grows continuously
+    from 0, about exponentially once it is well above the scale r0 (slow at the center, fast toward
+    the horizon, so the wave reaches distant terrain in time) and eased in and out."""
+    if frame <= start:
         return 0.0
     u = min((frame - start) / max(end - start, 1e-9), 1.0)
     u = u * u * (3 - 2 * u)  # smoothstep: ease in and out
-    return float(r0 * (r1 / r0) ** u)
+    return float(r0 * ((1 + r1 / r0) ** u - 1))
 
 
 def _inside(dist: np.ndarray, radius: float, softness: float) -> np.ndarray:
@@ -89,11 +90,13 @@ def past_alpha(dist_present: np.ndarray, dist_past: np.ndarray, z_present: np.nd
     return np.where(past_nearer, 1.0 - (1.0 - a) * b, 1.0 - b).astype(np.float32)
 
 
-def front_glow(dist_past: np.ndarray, radius: float, width: float) -> np.ndarray:
-    """Band of light on the past surfaces at the front, in [0, 1]."""
+def front_glow(dist_past: np.ndarray, radius: float, width: float, fade_in_m: float = 250.0) -> np.ndarray:
+    """Band of light on the past surfaces at the front, in [0, 1]. It fades in while the radius
+    grows to `fade_in_m`, so the first few meters of the wave are not a bright blob."""
     if radius <= 0:
         return np.zeros_like(dist_past, dtype=np.float32)
-    return np.exp(-(((dist_past - radius) / width) ** 2)).astype(np.float32)
+    fade = min(radius / fade_in_m, 1.0) ** 2 if fade_in_m > 0 else 1.0
+    return (fade * np.exp(-(((dist_past - radius) / width) ** 2))).astype(np.float32)
 
 
 def composite(present: np.ndarray, past: np.ndarray, alpha: np.ndarray, glow: np.ndarray | None = None,
@@ -104,3 +107,16 @@ def composite(present: np.ndarray, past: np.ndarray, alpha: np.ndarray, glow: np
         g = (glow * glow_strength)[..., None]
         out = out * (1 - g) + np.asarray(glow_color, np.float32) * g
     return np.clip(out + 0.5, 0, 255).astype(np.uint8)
+
+
+def rects_mask(xy: np.ndarray, rects, feather: float) -> np.ndarray:
+    """Soft membership (..., ) in [0, 1] of points (..., 2) in a union of axis-aligned rects
+    [x0, y0, x1, y1]; 0.5 on the edges, `feather` meters wide."""
+    out = np.zeros(xy.shape[:-1], np.float32)
+    for x0, y0, x1, y1 in rects:
+        # Signed distance to the rect, negative inside.
+        dx = np.maximum(x0 - xy[..., 0], xy[..., 0] - x1)
+        dy = np.maximum(y0 - xy[..., 1], xy[..., 1] - y1)
+        sd = np.where((dx > 0) | (dy > 0), np.hypot(np.maximum(dx, 0), np.maximum(dy, 0)), np.maximum(dx, dy))
+        out = np.maximum(out, 1.0 / (1.0 + np.exp(np.clip(sd / max(feather, 1e-6), -60, 60))))
+    return out

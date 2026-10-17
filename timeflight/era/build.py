@@ -40,6 +40,25 @@ def in_rects(pts: np.ndarray, rects: list[tuple[float, float, float, float]]) ->
     return hit
 
 
+def dry_zones(m: dict, origin: Origin) -> dict[str, list[tuple[float, float, float, float]]]:
+    """ENU rects [x0, y0, x1, y1] of solid open ground: the precinct, the plazas and a margin around
+    every named structure. Houses are kept out of them, and no canal runs through them."""
+    ax, ay = _enu_xy(m["anchor"]["lat"], m["anchor"]["lon"], origin)
+
+    def rel(bounds):
+        x0, y0, x1, y1 = bounds
+        return (ax + x0, ay + y0, ax + x1, ay + y1)
+
+    structures = []
+    for s in m["structures"]:
+        ox, oy = s["offset_m"]
+        w, d = s.get("size_m") or s.get("base_m") or [2 * s.get("radius_m", 10)] * 2
+        structures.append(rel((ox - w / 2 - 8, oy - d / 2 - 8, ox + w / 2 + 8, oy + d / 2 + 8)))
+    return {"precinct": [rel(m["precinct"]["bounds_m"])],
+            "plazas": [rel(p["bounds_m"]) for p in m.get("plazas", [])],
+            "structures": structures}
+
+
 def build_era(m: dict, origin: Origin, seed: int = 1519) -> dict:
     rng = np.random.default_rng(seed)
     water = m["water"]["level_m"]
@@ -58,13 +77,9 @@ def build_era(m: dict, origin: Origin, seed: int = 1519) -> dict:
 
     # Exclusion zones for houses: precinct, plazas, palaces and other structures.
     pr = m["precinct"]
-    keepout = [rel(pr["bounds_m"])] + [rel(p["bounds_m"]) for p in m.get("plazas", [])]
-    struct_rects = []
-    for s in m["structures"]:
-        ox, oy = s["offset_m"]
-        w, d = s.get("size_m") or s.get("base_m") or [2 * s.get("radius_m", 10)] * 2
-        struct_rects.append(rel((ox - w / 2 - 8, oy - d / 2 - 8, ox + w / 2 + 8, oy + d / 2 + 8)))
-    keepout += struct_rects
+    zones = dry_zones(m, origin)
+    struct_rects = zones["structures"]
+    keepout = zones["precinct"] + zones["plazas"] + struct_rects
     causeways = [_enu_xy(*np.array(c["points_latlon"]).T, origin) for c in m["causeways"]]
 
     # Land blocks separated by canals; chinampa strips near the shore.
