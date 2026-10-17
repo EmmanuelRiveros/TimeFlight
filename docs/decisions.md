@@ -25,6 +25,11 @@ This file overrides `docs/research.md`. Newest entries go at the bottom of each 
 
 | Item | Fact | Source |
 |---|---|---|
+| Gemma 4 license (checked 2026-10-17) | Apache-2.0. Google's Gemma docs list a "Gemma 4 license" link that opens the Apache License 2.0 page. The file we use, `gemma4-12b-with-proj-ltx-2.5-bf16`, ships in the Lightricks/LTX-2.5 repo (LTX-2.x Community License), which states no separate terms for it. | ai.google.dev/gemma/docs/core, ai.google.dev/gemma/apache_2, huggingface.co/Lightricks/LTX-2.5 |
+| Union IC-LoRA license (checked 2026-10-17) | `ltx-2-community-license` (model card front matter). | huggingface.co/Lightricks/LTX-2.3-22b-IC-LoRA-Union-Control |
+| Depth-Anything-V2-Small license (checked 2026-10-17) | Apache-2.0 (Base/Large/Giant are CC-BY-NC-4.0, not used). Evaluation only. | github.com/DepthAnything/Depth-Anything-V2 README; HF card |
+| Software licenses (checked 2026-10-17) | ComfyUI GPL-3.0 (LICENSE); ComfyUI-LTXVideo LTX-2 Community License Agreement 2026-01-05 (LICENSE); comfy-sdk 0.5.0 and comfy-api-proxy 0.1.6 MIT (PyPI). | repo LICENSE files, pypi.org |
+| Credit-card font | Source Sans 3, SIL OFL 1.1 (repo LICENSE.md). Pillow's bundled default font was not used: its license could not be confirmed. | github.com/adobe-fonts/source-sans |
 | LTX-2.5 | 22B, gated on HF. Distilled and dev bf16, Comfy int8, NVFP4 (Blackwell only). frames % 8 == 1; W/H divisible by 32. | huggingface.co/Lightricks/LTX-2.5 |
 | LTX license | LTX-2.x Community License: free commercial use for entities under $10M annual revenue. | same |
 | Union Control | No LTX-2.5-specific adapter exists. The official LTX-2.5 workflow reuses `ltx-2.3-22b-ic-lora-union-control-ref0.5.safetensors` from `Lightricks/LTX-2.3-22b-IC-LoRA-Union-Control` (depth/canny/pose). | ComfyUI-LTXVideo `example_workflows/2.5/LTX-2.5_ICLoRA_Union_Control_Distilled.json` |
