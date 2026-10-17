@@ -144,6 +144,7 @@ def render_rgb(scene, out):
     shading.color_type = "VERTEX"
     shading.show_shadows = True
     shading.show_cavity = True
+    scene.world.color = (0.50, 0.64, 0.82)  # Workbench background: light sky, not the default dark gray
     scene.display.render_aa = "8"
     scene.view_settings.view_transform = "Standard"
     scene.render.image_settings.color_mode = "RGB"

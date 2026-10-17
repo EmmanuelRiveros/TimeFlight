@@ -41,14 +41,15 @@ STEPS = {
     "T": ("r576_121", 576, 320, 121),
 }
 
-# Official distilled schedule; an RGB-init run starts at one of these sigmas.
+# Official distilled schedule. An RGB-init run starts at `start` and continues with the schedule's
+# lower steps. A start between two steps (e.g. 0.85) is our extrapolation, not an official setting.
 DISTILLED_SIGMAS = [1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0]
 
 
 def sigmas_from(start: float) -> str:
-    if start not in DISTILLED_SIGMAS[:-1]:
-        raise ValueError(f"init sigma {start} is not a step of the distilled schedule {DISTILLED_SIGMAS}")
-    return ", ".join(str(s) for s in DISTILLED_SIGMAS[DISTILLED_SIGMAS.index(start):])
+    if not 0.0 < start <= 1.0:
+        raise ValueError(f"init sigma {start} must be in (0, 1]")
+    return ", ".join(str(s) for s in [start] + [s for s in DISTILLED_SIGMAS if s < start])
 
 # The ref0.5 Union IC-LoRA has latent_downscale_factor 2: the guide is VAE-encoded at half the
 # output size, which must itself be divisible by 32. 288 and 544 fail inside the VAE encoder.

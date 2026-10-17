@@ -71,6 +71,11 @@ Checked locally (`out/m3/*_sheet.jpg`: output, output with Blender edges, contro
   canals and the lake itself read correctly.
 - **Fix under test (M3):** start the sampler from the Blender color render (water blue, land brown) at a
   partial noise level (SDEdit), keeping the depth guide. See the M3 test cells in the notebook.
+- **M3 test 1 (2026-10-17, 576×320×121, last 5 s):** all four runs worked (no init 51 s incl. load; init ~7–10 s).
+  Init at 0.975 and 0.909: still water, the colors are ignored. Init at 0.725: land is land and the pyramid
+  has its terraces, but the frames look like the flat-shaded render. Unstable fraction 0.75% (no init) →
+  0.03% (0.725). `out/m3/init_test_sheet.jpg`. Test 2: brighter palette with clear land/water contrast and a
+  light sky, starting at 0.909 / 0.85 / 0.8 (the last two are between official schedule steps).
 
 ## Decision
 **GO with LTX-2.5** (2026-10-16). U4 passed 2026-10-17.

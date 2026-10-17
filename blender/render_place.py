@@ -55,11 +55,14 @@ def build_terrain(path):
     mesh_from_arrays("Terrain", grid.reshape(-1, 3), loops, totals, colors)
 
 
-# Workbench colors per era proxy kind (RGB reference only; order matches timeflight.era.proxies.KINDS).
-KIND_COLORS = {"land": (0.55, 0.50, 0.42), "house": (0.85, 0.82, 0.74), "temple": (0.80, 0.76, 0.66),
-               "shrine": (0.70, 0.35, 0.30), "stairs": (0.75, 0.72, 0.64), "wall": (0.72, 0.68, 0.60),
-               "palace": (0.88, 0.85, 0.78), "causeway": (0.60, 0.56, 0.48), "bridge": (0.45, 0.33, 0.22),
-               "garden": (0.35, 0.50, 0.28)}
+# Workbench colors per era proxy kind (linear RGB; order matches timeflight.era.proxies.KINDS).
+# The RGB render is also the starting image of RGB-init runs (M3), so the palette is bright and
+# plausible, and land must contrast clearly with water: pale lime-plaster ground vs dark teal water.
+KIND_COLORS = {"land": (0.80, 0.74, 0.60), "house": (0.92, 0.90, 0.84), "temple": (0.90, 0.86, 0.76),
+               "shrine": (0.62, 0.16, 0.12), "stairs": (0.82, 0.78, 0.70), "wall": (0.86, 0.82, 0.72),
+               "palace": (0.94, 0.91, 0.84), "causeway": (0.70, 0.65, 0.54), "bridge": (0.40, 0.27, 0.15),
+               "garden": (0.22, 0.42, 0.12)}
+WATER_COLOR = (0.05, 0.20, 0.22)
 
 
 def build_buildings(path, kinds=None):
@@ -94,7 +97,7 @@ def build_buildings(path, kinds=None):
 
 def build_water(level, half=30000.0):
     verts = [(-half, -half, level), (half, -half, level), (half, half, level), (-half, half, level)]
-    mesh_from_arrays("Water", verts, [0, 1, 2, 3], [4], [(0.22, 0.36, 0.40)])
+    mesh_from_arrays("Water", verts, [0, 1, 2, 3], [4], [WATER_COLOR])
 
 
 def add_camera(scene, cam_json, start, frames):
