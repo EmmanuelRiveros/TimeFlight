@@ -80,6 +80,13 @@ Checked locally (`out/m3/*_sheet.jpg`: output, output with Blender edges, contro
   with the new palette. Same outcome: 0.909 water, 0.725 land but render-like. The palette alone does not move
   the threshold. The matrix now lives in `colab/m3_test.sh`. Test 3: a prompt that calls the precinct a dry paved
   plaza (`past_1519_plaza`), alone and with init 0.85 / 0.8.
+- **M3 test 3 result (2026-10-17):** the prompt alone fixes it. `past_1519_plaza` with no init gives a dry,
+  paved precinct and plaza with the pyramid on solid ground, and still looks like footage (unstable 1.1%, pop
+  1.17). Every init run (0.85, 0.8, either prompt) still looks like the flat render. **RGB init is dropped**;
+  the workflow stays in the repo as an option. Remaining issues: one palace courtyard became a pool and the
+  ground is sandy rather than white stucco (`past_1519_plaza2` addresses both). Next: the full 15 s with both
+  prompts (`colab/m3_full.sh`) to check that the lake and canals in the first 10 s still read correctly.
+  Sheet: `out/m3/init_test3_sheet.jpg`.
 
 ## Decision
 **GO with LTX-2.5** (2026-10-16). U4 passed 2026-10-17.
