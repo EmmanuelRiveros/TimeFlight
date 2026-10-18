@@ -1,12 +1,14 @@
 """TimeFlight ComfyUI nodes. Thin wrappers: all logic lives in the `timeflight` package.
 
 IMAGE tensors are float [frames, H, W, 3] in 0..1; they are converted to uint8 numpy for
-timeflight and back. torch is imported lazily so the module can be inspected without it
-(tests check every node's inputs against its function signature).
+timeflight and back one frame at a time, so a 2K clip (10 GB as float) is never copied whole.
+torch is imported lazily so the module can be inspected without it (tests check every node's
+inputs against its function signature).
 """
 
 from __future__ import annotations
 
+import itertools
 import json
 from pathlib import Path
 
@@ -16,16 +18,56 @@ CATEGORY = "TimeFlight"
 PASS = "TF_PASS"  # a timeflight.passes.RenderPass: depth + camera of one Blender render folder
 
 
-def _to_uint8(images) -> np.ndarray:
+def _frame_u8(frame) -> np.ndarray:
     import torch
 
-    return images.clamp(0, 1).mul(255).round().to(torch.uint8).cpu().numpy()
+    return frame.clamp(0, 1).mul(255).round().to(torch.uint8).cpu().numpy()
 
 
-def _to_image(frames: np.ndarray):
+class _Frames:
+    """Read-only uint8 view of an IMAGE tensor, converted frame by frame on access."""
+
+    def __init__(self, images):
+        self.images = images
+        self.shape = tuple(images.shape)
+
+    def __len__(self) -> int:
+        return self.shape[0]
+
+    def __getitem__(self, i: int) -> np.ndarray:
+        return _frame_u8(self.images[i])
+
+
+def _frames(images):
+    return _Frames(images)
+
+
+def _to_uint8(images, size: tuple[int, int] | None = None) -> np.ndarray:
+    """IMAGE -> uint8 (F, H, W, 3); with `size` (w, h) each frame is resized (lanczos) on the way."""
+    n, h, w = images.shape[:3]
+    if size is None or tuple(size) == (w, h):
+        size = None
+    out = np.empty((n, *(size[::-1] if size else (h, w)), 3), np.uint8)
+    for i in range(n):
+        f = _frame_u8(images[i])
+        if size:
+            from PIL import Image
+
+            f = np.asarray(Image.fromarray(f).resize(size, Image.Resampling.LANCZOS))
+        out[i] = f
+    return out
+
+
+def _collect(frames, count: int):
+    """uint8 frames (an iterable of (H, W, 3)) -> IMAGE tensor, filled in place."""
     import torch
 
-    return torch.from_numpy(np.ascontiguousarray(frames)).float().div(255.0)
+    out = None
+    for i, f in enumerate(frames):
+        if out is None:
+            out = torch.empty((count, *f.shape), dtype=torch.float32)
+        out[i] = torch.from_numpy(np.ascontiguousarray(f)).float().div_(255.0)
+    return out
 
 
 def _audio_np(audio) -> tuple[np.ndarray, int]:
@@ -92,8 +134,8 @@ class TimeFlightEraMerge:
 
         z = dry_zones(_manifest(place_dir, era), Origin(**era_pass.origin))
         rects = z["precinct"] + z["plazas"] + z["structures"]
-        frames = zone_merge_frames(_to_uint8(base), _to_uint8(zones), era_pass, rects, feather_m)
-        return (_to_image(np.stack(list(frames))),)
+        frames = zone_merge_frames(_frames(base), _frames(zones), era_pass, rects, feather_m)
+        return (_collect(frames, len(base)),)
 
 
 class TimeFlightTimeWave:
@@ -126,8 +168,8 @@ class TimeFlightTimeWave:
 
         center = anchor_xy(_manifest(place_dir, era), Origin(**present_pass.origin))
         params = WaveParams(start_s, end_s, r0_m, r1_m, softness_m, glow, glow_fade_m)
-        frames = timewave_frames(_to_uint8(present), _to_uint8(past), present_pass, past_pass, center, fps, params)
-        return (_to_image(np.stack(list(frames))),)
+        frames = timewave_frames(_frames(present), _frames(past), present_pass, past_pass, center, fps, params)
+        return (_collect(frames, len(present)),)
 
 
 class TimeFlightCredits:
@@ -153,10 +195,14 @@ class TimeFlightCredits:
             "past_start_s": f(12.0, 600.0), "past_end_s": f(15.0, 600.0),
             "card_seconds": f(6.0, 60.0),
             "allow_draft": ("BOOLEAN", {"default": False}),
+        }, "optional": {
+            # Output size (0 = keep). Resizing here, frame by frame, avoids a whole-clip copy.
+            "width": ("INT", {"default": 0, "min": 0, "max": 8192}),
+            "height": ("INT", {"default": 0, "min": 0, "max": 8192}),
         }}
 
     def credits(self, images, place_dir, era, fps, present_caption, present_start_s, present_end_s,
-                past_caption, past_start_s, past_end_s, card_seconds, allow_draft):
+                past_caption, past_start_s, past_end_s, card_seconds, allow_draft, width=0, height=0):
         from timeflight.assets_log import read_assets
         from timeflight.provenance.cards import caption_frames, card_frames, render_cards
         from timeflight.provenance.credits import build_credits, to_markdown
@@ -166,13 +212,13 @@ class TimeFlightCredits:
         c = build_credits(manifest, read_assets(), place.get("label"))
         if c.draft and not allow_draft:
             raise ValueError("credits are a draft: " + "; ".join(c.problems))
-        frames = _to_uint8(images)
+        frames = _to_uint8(images, (width, height) if width and height else None)
         captions = [(present_start_s, present_end_s, present_caption),
                     (past_start_s, past_end_s, past_caption or f"{manifest['label']} · illustrative AI reconstruction")]
         captioned = caption_frames(frames, [cap for cap in captions if cap[2]], fps)
         cards = render_cards(c.title, c.notice, c.cards, (frames.shape[2], frames.shape[1]), c.draft)
         tail = card_frames(cards, fps, card_seconds)
-        return (_to_image(np.concatenate([captioned, tail])), to_markdown(c))
+        return (_collect(itertools.chain(captioned, tail), len(captioned) + len(tail)), to_markdown(c))
 
 
 class TimeFlightAudioMix:

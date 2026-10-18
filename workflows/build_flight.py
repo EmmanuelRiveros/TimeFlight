@@ -107,12 +107,12 @@ def build(width: int = 1024, height: int = 576, length: int = 361, fps: float = 
                  present_pass=out(present_pass, 0), past_pass=out(past_pass, 0), place_dir=PLACE_DIR, era="1519",
                  fps=fps, start_s=3.5, end_s=12.5, r0_m=30.0, r1_m=15000.0, softness_m=25.0, glow=0.6,
                  glow_fade_m=80.0)
-    if stage2:
-        wave = g.add("ImageScale", "output_size", image=out(wave), upscale_method="lanczos",
-                     width=out_size[0], height=out_size[1], crop="disabled")
+    # With stage 2 the credits node also resizes to out_size (lanczos, frame by frame).
+    size = dict(width=out_size[0], height=out_size[1]) if stage2 else {}
     credits = g.add("TimeFlightCredits", "credits", images=out(wave), place_dir=PLACE_DIR, era="1519", fps=fps,
                     present_caption="Mexico City, today", present_start_s=0.5, present_end_s=3.3,
-                    past_caption="", past_start_s=12.0, past_end_s=15.0, card_seconds=6.0, allow_draft=False)
+                    past_caption="", past_start_s=12.0, past_end_s=15.0, card_seconds=6.0, allow_draft=False,
+                    **size)
     # The present soundtrack crossfades into the city's (past_base) on the wave's timing.
     mix = g.add("TimeFlightAudioMix", "audio_mix", images=out(credits, 0), present=out(present_audio),
                 past=out(past_audio), fps=fps, flight_frames=length, start_s=3.5, end_s=12.5, fade_out_s=1.5)

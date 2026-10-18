@@ -82,7 +82,7 @@ def plan(args) -> dict[tuple[str, str], object]:
         values[(f"{b}_seed", "noise_seed")] = args.seed
         values[(f"save_{b}", "filename_prefix")] = f"timeflight/flight/{args.name}_{b}"
     if pre.get("stages", 1) == 2:
-        values[("output_size", "width")], values[("output_size", "height")] = pre["out_size"]
+        values[("credits", "width")], values[("credits", "height")] = pre["out_size"]
     return values
 
 

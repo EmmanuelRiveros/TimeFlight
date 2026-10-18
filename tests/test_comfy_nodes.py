@@ -75,8 +75,9 @@ def _fake_pass(frames=3, h=36, w=64) -> RenderPass:
 
 @pytest.fixture
 def no_torch(monkeypatch):
-    monkeypatch.setattr(N, "_to_uint8", lambda x: x)
-    monkeypatch.setattr(N, "_to_image", lambda x: x)
+    monkeypatch.setattr(N, "_frames", lambda x: x)
+    monkeypatch.setattr(N, "_to_uint8", lambda x, size=None: x)
+    monkeypatch.setattr(N, "_collect", lambda frames, n: np.stack(list(frames)))
 
 
 def test_era_merge_and_time_wave_nodes_run(no_torch):
