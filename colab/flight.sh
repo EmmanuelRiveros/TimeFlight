@@ -43,7 +43,14 @@ python scripts/validate_workflow.py workflows/api/timeflight_flight_api.json
 mkdir -p /content/drive/MyDrive/timeflight/flight_results
 for preset in "${PRESETS[@]}"; do
   echo "== $preset"
-  python app/run_flight.py --preset "$preset" --renders /content/place --results /content/flight_results
+  if ! python app/run_flight.py --preset "$preset" --renders /content/place --results /content/flight_results; then
+    # If ComfyUI itself died, say why: the kernel's OOM killer, or the last lines of its log.
+    curl -sf http://127.0.0.1:8188/ > /dev/null || echo "ComfyUI is not running any more"
+    dmesg 2>/dev/null | grep -i -E "out of memory|killed process" | tail -5 || true
+    tail -30 /content/comfy.log
+    free -g | head -2
+    exit 1
+  fi
   free -g | head -2; nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader
   cp -r /content/flight_results/. /content/drive/MyDrive/timeflight/flight_results/
 done
