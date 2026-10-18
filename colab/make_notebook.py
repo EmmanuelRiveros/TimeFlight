@@ -113,6 +113,12 @@ Uses `polish_inputs.zip` (already uploaded for Hero polish). Same seed for all f
     ("code", """!git -C /content/TimeFlight pull -q
 !bash /content/TimeFlight/colab/texture_test.sh
 gpu_hours(); assert _exit_code == 0, 'texture test failed: send the error above'"""),
+    ("md", """## Texture test 2: "lived-in" prompts (1 x 2 s at 1152x640)
+Round 1 (run 11): guide 0.8 drifts from the depth; the *_mat prompts read as decay. This runs the *_live
+prompts at strength 1.0 with the same seed, so it compares directly with `tex_base`. About 3 min of GPU."""),
+    ("code", """!git -C /content/TimeFlight pull -q
+!bash /content/TimeFlight/colab/texture_test.sh tex_live
+gpu_hours(); assert _exit_code == 0, 'texture test 2 failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/
