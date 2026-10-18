@@ -13,7 +13,9 @@ PRESETS=("$@")
 [ ${#PRESETS[@]} -gt 0 ] || PRESETS=(hero)
 
 test -f "$ZIP" || { echo "$ZIP not found: upload it to MyDrive/timeflight/"; exit 1; }
-mkdir -p /content/place && unzip -nq "$ZIP" -d /content/place   # -n: add missing files, keep existing
+# -o: the zip wins. Folders unpacked earlier in the session (e.g. from m3_inputs.zip) share names
+# with these but may hold older render.json files without the camera entry.
+mkdir -p /content/place && unzip -oq "$ZIP" -d /content/place
 ls /content/place
 
 nodes_loaded() { [[ "$(curl -sf http://127.0.0.1:8188/object_info/TimeFlightTimeWave || true)" == *TimeFlightTimeWave* ]]; }
