@@ -9,7 +9,8 @@ rendered along the same camera path, so every pixel of each clip has a known wor
 - if neither is (a present building removed, revealing past ground still outside the
   sphere), the past layer is shown, since no render exists for "present without that building".
 
-Everything is soft (a band of `softness_m` meters), so the front is a smooth, glowing edge. A tall
+Everything is soft (a smoothstep band of ±2 × `softness_m` meters, exactly zero beyond it), so the
+front is a smooth, glowing edge and nothing of the past shows ahead of it. A tall
 building still changes era within that band, and the two eras overlap there as a ghost; an optional
 dust curtain (`front_curtain`), a wall of glowing dust standing on the front, hides that swap.
 Pure numpy; the camera model matches blender/render_place.py (planar depth, 36 mm sensor on the
@@ -88,9 +89,14 @@ def wave_radius(frame: float, start: float, end: float, r0: float, r1: float) ->
 
 
 def _inside(dist: np.ndarray, radius: float, softness: float) -> np.ndarray:
+    """1 inside the front, 0 outside, smoothstep across radius ± 2 * softness. The band has compact
+    support: a logistic edge never reaches 0, and its tail (~5% at 75 m with 25 m softness, up to 15%
+    once the past and present tails combine) showed tall past buildings as faint ghosts ahead of the front."""
     if radius <= 0:
         return np.zeros_like(dist, dtype=np.float32)
-    return (1.0 / (1.0 + np.exp(np.clip((dist - radius) / softness, -60, 60)))).astype(np.float32)
+    half = 2.0 * max(softness, 1e-6)
+    t = np.clip((radius + half - dist) / (2 * half), 0.0, 1.0)
+    return (t * t * (3 - 2 * t)).astype(np.float32)
 
 
 def past_alpha(dist_present: np.ndarray, dist_past: np.ndarray, z_present: np.ndarray, z_past: np.ndarray,

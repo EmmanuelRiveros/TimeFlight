@@ -67,6 +67,17 @@ def test_past_alpha_rules():
     assert 0.2 < past_alpha(r * one, r * one, 10 * one, 10 * one, radius=r, softness=30)[0] < 0.8
 
 
+def test_nothing_of_the_past_ahead_of_the_front():
+    # A logistic edge leaked ~5-15% of the past onto tall buildings 60-100 m ahead of the front.
+    r, s = 1000.0, 25.0
+    one = np.ones(1)
+    for near, far in ((10, 80), (80, 10)):  # past nearer, present nearer
+        ahead = past_alpha((r + 2 * s + 1) * one, (r + 2 * s + 1) * one, near * one, far * one, radius=r, softness=s)
+        assert ahead[0] == 0.0
+        behind = past_alpha((r - 2 * s - 1) * one, (r - 2 * s - 1) * one, near * one, far * one, radius=r, softness=s)
+        assert behind[0] == 1.0
+
+
 def test_rects_mask():
     pts = np.array([[5.0, 5.0], [-50.0, 5.0], [0.0, 5.0], [15.0, 30.0], [10.0 + 1e3, 5.0]])
     m = rects_mask(pts, [(0, 0, 10, 10), (12, 25, 20, 35)], feather=2.0)
