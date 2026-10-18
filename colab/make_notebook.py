@@ -107,6 +107,12 @@ Runs a 5 s decode check at 1152x640 first (121 frames in one temporal tile), the
     ("code", """!git -C /content/TimeFlight pull -q
 !bash /content/TimeFlight/colab/flight.sh polish2_inputs.zip hero_s2_seams_test hero_s2
 gpu_hours(); assert _exit_code == 0, 'polish 2 failed: send the error above'"""),
+    ("md", """## Texture test: material prompts and a looser depth guide (4 x 2 s at 1152x640)
+Uses `polish_inputs.zip` (already uploaded for Hero polish). Same seed for all four: `tex_base`, `tex_mat`
+(material-rich prompts), `tex_g08` (guide strength 0.8), `tex_mat_g08` (both). About 10 min of GPU."""),
+    ("code", """!git -C /content/TimeFlight pull -q
+!bash /content/TimeFlight/colab/texture_test.sh
+gpu_hours(); assert _exit_code == 0, 'texture test failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/

@@ -85,6 +85,7 @@ def plan(args) -> dict[tuple[str, str], object]:
         values[(f"{b}_latent", "length")] = n
         values[(f"{b}_audio_latent", "frames_number")] = n
         values[(f"{b}_seed", "noise_seed")] = args.seed
+        values[(f"{b}_guide", "strength")] = args.guide_strength
         values[(f"save_{b}", "filename_prefix")] = f"timeflight/flight/{args.name}_{b}"
     if pre.get("stages", 1) == 2:
         values[("credits", "width")], values[("credits", "height")] = pre["out_size"]
@@ -105,6 +106,8 @@ def main() -> None:
     p.add_argument("--past-base-prompt", default="past_1519")
     p.add_argument("--past-zones-prompt", default="past_1519_plaza2")
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--guide-strength", type=float, default=1.0,
+                   help="depth guide strength for all three generations (below 1 leaves the model more freedom)")
     p.add_argument("--name", help="output name (default: <preset>_<era>)")
     p.add_argument("--results", type=Path, default=REPO / "out" / "flight")
     p.add_argument("--dry-run", action="store_true")
@@ -133,7 +136,9 @@ def main() -> None:
     for (title, name), value in values.items():
         wf.set_input(ids[title], name, value)
     args.results.mkdir(parents=True, exist_ok=True)
-    rec = {"name": args.name, "preset": args.preset, "seed": args.seed, "era": args.era}
+    rec = {"name": args.name, "preset": args.preset, "seed": args.seed, "era": args.era,
+           "guide_strength": args.guide_strength,
+           "prompts": [args.present_prompt, args.past_base_prompt, args.past_zones_prompt]}
     t0 = time.time()
     try:
         job = client.run(wf)

@@ -50,3 +50,20 @@ def write_video(frames: np.ndarray, path: Path, fps: float, crf: int = 10) -> No
          "-pix_fmt", "yuv420p", str(path)],
         input=np.ascontiguousarray(frames).tobytes(), check=True,
     )
+
+
+def iter_frames(path: Path):
+    """Decode an RGB video one uint8 (H, W, 3) frame at a time (constant memory for long 1080p clips)."""
+    info = probe(path)
+    w, h = info["width"], info["height"]
+    proc = subprocess.Popen(["ffmpeg", "-v", "error", "-i", str(path), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                            stdout=subprocess.PIPE)
+    try:
+        while True:
+            raw = proc.stdout.read(w * h * 3)
+            if len(raw) < w * h * 3:
+                break
+            yield np.frombuffer(raw, np.uint8).reshape(h, w, 3)
+    finally:
+        proc.stdout.close()
+        proc.wait()

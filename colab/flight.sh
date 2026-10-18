@@ -4,6 +4,7 @@
 #   bash colab/flight.sh teaser_inputs.zip teaser_test teaser    # small portrait check, then the teaser
 #   bash colab/flight.sh polish_inputs.zip hero_s2_test hero_s2  # stage 2 (x2 latent upscale), 1920x1080
 #   bash colab/flight.sh polish2_inputs.zip hero_s2_seams_test hero_s2  # decode check (121 frames), then the hero
+# FLIGHT_ARGS is passed to every app/run_flight.py call (e.g. "--name x --guide-strength 0.8"); see colab/texture_test.sh.
 # The zip (scripts/pack_m0.py ... --with-depth) must be in MyDrive/timeflight/. Presets run in order and
 # the script stops at the first failure. Servers must be started after colab/setup_comfy.sh, which
 # installs the TimeFlight nodes; ComfyUI is restarted here if it predates them.
@@ -44,7 +45,8 @@ python scripts/validate_workflow.py workflows/api/timeflight_flight_api.json
 mkdir -p /content/drive/MyDrive/timeflight/flight_results
 for preset in "${PRESETS[@]}"; do
   echo "== $preset"
-  if ! python app/run_flight.py --preset "$preset" --renders /content/place --results /content/flight_results; then
+  # shellcheck disable=SC2086  # FLIGHT_ARGS is a list of flags
+  if ! python app/run_flight.py --preset "$preset" --renders /content/place --results /content/flight_results ${FLIGHT_ARGS:-}; then
     # If ComfyUI itself died, say why: the kernel's OOM killer, or the last lines of its log.
     curl -sf http://127.0.0.1:8188/ > /dev/null || echo "ComfyUI is not running any more"
     dmesg 2>/dev/null | grep -i -E "out of memory|killed process" | tail -5 || true
