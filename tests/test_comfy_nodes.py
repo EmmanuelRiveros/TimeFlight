@@ -112,3 +112,14 @@ def test_audio_mix_node(monkeypatch):
     (audio,) = N.TimeFlightAudioMix().mix(images, present, past, 24.0, 48, 0.5, 1.0, 0.0)
     w = audio["waveform"]
     assert w.shape == (2, 3 * sr) and w[0, 10] == 1.0 and w[0, 150] == -1.0 and not w[:, 2 * sr:].any()
+
+
+def test_load_pass_node(monkeypatch, no_torch):
+    import timeflight.passes
+    import timeflight.video
+
+    rp = _fake_pass()
+    monkeypatch.setattr(timeflight.passes, "load_pass", lambda folder, camera=None: rp)
+    monkeypatch.setattr(timeflight.video, "read_video", lambda path: np.zeros((3, 36, 64, 3), np.uint8))
+    out_pass, control, frames, fps = N.TimeFlightLoadPass().load("/x")
+    assert out_pass is rp and control.shape == (3, 36, 64, 3) and frames == 3 and fps == 24.0

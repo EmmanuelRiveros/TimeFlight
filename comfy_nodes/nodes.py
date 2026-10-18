@@ -106,7 +106,7 @@ class TimeFlightLoadPass:
         control = read_video(Path(render_dir) / "control_inverse.mp4")
         if len(control) != rp.frames:
             raise ValueError(f"control has {len(control)} frames, depth has {rp.frames}")
-        return (rp, _to_image(control), rp.frames, rp.fps)
+        return (rp, _collect(control, len(control)), rp.frames, rp.fps)
 
 
 class TimeFlightEraMerge:
