@@ -448,7 +448,7 @@
       ],
       "tile_size": 512,
       "overlap": 64,
-      "temporal_size": 64,
+      "temporal_size": 512,
       "temporal_overlap": 8
     },
     "_meta": {
@@ -823,7 +823,7 @@
       ],
       "tile_size": 512,
       "overlap": 64,
-      "temporal_size": 64,
+      "temporal_size": 512,
       "temporal_overlap": 8
     },
     "_meta": {
@@ -1198,7 +1198,7 @@
       ],
       "tile_size": 512,
       "overlap": 64,
-      "temporal_size": 64,
+      "temporal_size": 512,
       "temporal_overlap": 8
     },
     "_meta": {
@@ -1304,7 +1304,11 @@
       "r1_m": 15000.0,
       "softness_m": 25.0,
       "glow": 0.6,
-      "glow_fade_m": 80.0
+      "glow_fade_m": 80.0,
+      "curtain": 0.8,
+      "curtain_height_m": 80.0,
+      "curtain_width_m": 30.0,
+      "curtain_far_m": 4000.0
     },
     "_meta": {
       "title": "time_wave"

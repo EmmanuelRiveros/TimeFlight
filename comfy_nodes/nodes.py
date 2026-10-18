@@ -158,16 +158,22 @@ class TimeFlightTimeWave:
             "r0_m": f(30.0, 1.0, 1000.0, 1.0), "r1_m": f(15000.0, 100.0, 100000.0, 100.0),
             "softness_m": f(25.0, 0.5, 500.0, 0.5),
             "glow": f(0.6, 0.0, 1.0, 0.05), "glow_fade_m": f(80.0, 0.0, 2000.0, 10.0),
+        }, "optional": {
+            # Dust curtain on the front: hides tall buildings changing era (0 = off).
+            "curtain": f(0.0, 0.0, 1.0, 0.05), "curtain_height_m": f(80.0, 1.0, 1000.0, 5.0),
+            "curtain_width_m": f(30.0, 1.0, 500.0, 5.0), "curtain_far_m": f(4000.0, 100.0, 100000.0, 100.0),
         }}
 
     def wave(self, present, past, present_pass, past_pass, place_dir, era, fps, start_s, end_s,
-             r0_m, r1_m, softness_m, glow, glow_fade_m):
+             r0_m, r1_m, softness_m, glow, glow_fade_m, curtain=0.0, curtain_height_m=80.0,
+             curtain_width_m=30.0, curtain_far_m=4000.0):
         from timeflight.era.build import anchor_xy
         from timeflight.geo.enu import Origin
         from timeflight.timewave import WaveParams, timewave_frames
 
         center = anchor_xy(_manifest(place_dir, era), Origin(**present_pass.origin))
-        params = WaveParams(start_s, end_s, r0_m, r1_m, softness_m, glow, glow_fade_m)
+        params = WaveParams(start_s, end_s, r0_m, r1_m, softness_m, glow, glow_fade_m,
+                            curtain, curtain_height_m, curtain_width_m, curtain_far_m)
         frames = timewave_frames(_frames(present), _frames(past), present_pass, past_pass, center, fps, params)
         return (_collect(frames, len(present)),)
 

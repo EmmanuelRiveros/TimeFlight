@@ -100,6 +100,13 @@ Runs a 2 s stage-2 check at 1152x640 first, then the full hero."""),
     ("code", """!git -C /content/TimeFlight pull -q
 !bash /content/TimeFlight/colab/flight.sh polish_inputs.zip hero_s2_test hero_s2
 gpu_hours(); assert _exit_code == 0, 'polish failed: send the error above'"""),
+    ("md", """## Hero polish 2: decode without temporal seams, dust curtain on the wave front
+Upload `polish2_inputs.zip` (made with `scripts/pack_m0.py --src out/polish --folders present_r576x320_121 1519_r576x320_121
+present_r1024_361 1519_r1024_361 --out out/polish2_inputs.zip --with-depth`) to `MyDrive/timeflight/`.
+Runs a 5 s decode check at 1152x640 first (121 frames in one temporal tile), then the full hero."""),
+    ("code", """!git -C /content/TimeFlight pull -q
+!bash /content/TimeFlight/colab/flight.sh polish2_inputs.zip hero_s2_seams_test hero_s2
+gpu_hours(); assert _exit_code == 0, 'polish 2 failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/

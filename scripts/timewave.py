@@ -46,6 +46,8 @@ def main() -> None:
     p.add_argument("--softness", type=float, default=25.0, help="width of the soft edge, m")
     p.add_argument("--glow", type=float, default=0.6, help="front glow strength (0 = none)")
     p.add_argument("--glow-fade", type=float, default=80.0, help="radius at which the glow reaches full strength, m")
+    p.add_argument("--curtain", type=float, default=0.0, help="dust curtain opacity on the front (0 = none)")
+    p.add_argument("--curtain-height", type=float, default=80.0, help="curtain height above the ground, m")
     p.add_argument("--sheet", type=Path, help="also write a contact sheet of 8 frames")
     args = p.parse_args()
 
@@ -55,7 +57,8 @@ def main() -> None:
     center = anchor_xy(manifest, Origin(**pa.origin))
     present, past = read_video(args.present), read_video(args.past)
     fps, n = probe(args.present)["fps"], len(present)
-    params = WaveParams(args.start_s, args.end_s, args.r0, args.r1, args.softness, args.glow, args.glow_fade)
+    params = WaveParams(args.start_s, args.end_s, args.r0, args.r1, args.softness, args.glow, args.glow_fade,
+                        curtain=args.curtain, curtain_height=args.curtain_height)
     out = np.stack(list(timewave_frames(present, past, pa, pb, center, fps, params)))
     write_video(out, args.out, fps, crf=12)
     print(f"wrote {args.out}")

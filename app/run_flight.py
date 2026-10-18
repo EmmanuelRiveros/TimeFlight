@@ -35,6 +35,11 @@ PRESETS = {
     "hero_s2": dict(size=(1024, 576), frames=361, folders=("present_r1024_361", "1519_r1024_361"),
                     wave=(3.5, 12.5), present_caption=(0.5, 3.3), past_caption=(12.0, 15.0), card_s=6.0,
                     stages=2, out_size=(1920, 1080)),
+    # Decode check: 121 frames would be 2 temporal tiles at the old 64-frame setting; with one tile
+    # there must be no soft frame at 56, and this shows decode memory without the temporal split.
+    "hero_s2_seams_test": dict(size=(576, 320), frames=121, folders=("present_r576x320_121", "1519_r576x320_121"),
+                               wave=(1.0, 4.0), present_caption=(0.0, 0.8), past_caption=(4.0, 5.0), card_s=1.0,
+                               stages=2, out_size=(1152, 640)),
     # Small end-to-end check of stage 2 (last 2 s of the path) before the full hero.
     "hero_s2_test": dict(size=(576, 320), frames=49, folders=("present_r576x320_49", "1519_r576x320_49"),
                          wave=(0.3, 1.5), present_caption=(0.0, 0.3), past_caption=(1.5, 2.0), card_s=1.0,

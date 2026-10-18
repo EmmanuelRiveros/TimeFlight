@@ -27,6 +27,7 @@ UPSCALER_FILE = "ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors"
 # Stage 2 as in the official LTX-2.5 Union Control template: x2 latent upscale, then the last three
 # distilled steps (euler, cfg 1) on the cropped-guide conditioning, with no new depth guide.
 STAGE2_SIGMAS = "0.909375, 0.725, 0.421875, 0.0"
+TEMPORAL_TILE = 512  # frames per temporal decode tile; >= the clip length means no temporal seams
 PLACE_DIR = "/content/TimeFlight/places/tenochtitlan_zocalo"
 BRANCHES = ("present", "past_base", "past_zones")
 
@@ -88,8 +89,10 @@ def build(width: int = 1024, height: int = 576, length: int = 361, fps: float = 
                              latent_image=out(av2))
             sep2 = g.add("LTXVSeparateAVLatent", f"{name}_split_av_stage2", av_latent=out(sampled2))
             video_latent, audio_latent = out(sep2, 0), out(sep2, 1)
+        # Spatial tiles only: temporal tiles are blended over their overlap, which softens the frames at
+        # every seam (every 56 frames with 64/8; measured in run 10). 512 frames cover a whole clip.
         decoded = g.add("VAEDecodeTiled", f"{name}_decode", samples=video_latent, vae=out(vae),
-                        tile_size=512, overlap=64, temporal_size=64, temporal_overlap=8)
+                        tile_size=512, overlap=64, temporal_size=TEMPORAL_TILE, temporal_overlap=8)
         audio = g.add("LTXVAudioVAEDecode", f"{name}_audio_decode", samples=audio_latent, audio_vae=out(avae))
         # Keep each raw generation too: cheap, and lets the composite be redone locally without GPU.
         vid = g.add("CreateVideo", f"{name}_video", images=out(decoded), fps=fps, audio=out(audio))
@@ -106,7 +109,7 @@ def build(width: int = 1024, height: int = 576, length: int = 361, fps: float = 
     wave = g.add("TimeFlightTimeWave", "time_wave", present=out(present), past=out(merged),
                  present_pass=out(present_pass, 0), past_pass=out(past_pass, 0), place_dir=PLACE_DIR, era="1519",
                  fps=fps, start_s=3.5, end_s=12.5, r0_m=30.0, r1_m=15000.0, softness_m=25.0, glow=0.6,
-                 glow_fade_m=80.0)
+                 glow_fade_m=80.0, curtain=0.8, curtain_height_m=80.0, curtain_width_m=30.0, curtain_far_m=4000.0)
     # With stage 2 the credits node also resizes to out_size (lanczos, frame by frame).
     size = dict(width=out_size[0], height=out_size[1]) if stage2 else {}
     credits = g.add("TimeFlightCredits", "credits", images=out(wave), place_dir=PLACE_DIR, era="1519", fps=fps,

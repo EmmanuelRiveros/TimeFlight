@@ -3,6 +3,7 @@
 #   bash colab/flight.sh                                         # hero (flight_inputs.zip)
 #   bash colab/flight.sh teaser_inputs.zip teaser_test teaser    # small portrait check, then the teaser
 #   bash colab/flight.sh polish_inputs.zip hero_s2_test hero_s2  # stage 2 (x2 latent upscale), 1920x1080
+#   bash colab/flight.sh polish2_inputs.zip hero_s2_seams_test hero_s2  # decode check (121 frames), then the hero
 # The zip (scripts/pack_m0.py ... --with-depth) must be in MyDrive/timeflight/. Presets run in order and
 # the script stops at the first failure. Servers must be started after colab/setup_comfy.sh, which
 # installs the TimeFlight nodes; ComfyUI is restarted here if it predates them.

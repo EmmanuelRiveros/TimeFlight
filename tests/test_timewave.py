@@ -110,3 +110,19 @@ def test_zone_merge_on_frames_larger_than_the_pass():
     assert out[0].shape == (72, 128, 3) and out[0].min() >= 199
     with pytest.raises(ValueError):
         list(zone_merge_frames(base[:, :, :100], zones[:, :, :100], rp, [big]))
+
+
+def test_front_curtain_stands_on_the_front_and_respects_occlusion():
+    from timeflight.timewave import front_curtain
+
+    # Camera 500 m west of the center at 100 m, looking east and level: the center row of pixels
+    # runs along the ground plane height, so the ray crosses the wall at z = 100.
+    pos, tgt, c = np.array([-500.0, 0.0, 100.0]), np.array([0.0, 0.0, 100.0]), (0.0, 0.0)
+    far = np.full((9, 16), 1e5)
+    low = front_curtain(far, pos, tgt, 24.0, c, 200.0, ground_z=50.0, height=80.0, width=30.0)
+    high = front_curtain(far, pos, tgt, 24.0, c, 200.0, ground_z=-200.0, height=80.0, width=30.0)
+    assert low[4, 8] > 0.2                      # wall crossed 50 m above its foot: dust
+    assert high[4, 8] == 0.0                    # wall top at -120 m: the ray passes above it
+    near = np.full((9, 16), 100.0)              # a surface 100 m away, in front of the wall (300 m)
+    assert front_curtain(near, pos, tgt, 24.0, c, 200.0, 50.0, 80.0, 30.0)[4, 8] == 0.0
+    assert front_curtain(far, pos, tgt, 24.0, c, 0.0, 50.0, 80.0, 30.0).max() == 0.0

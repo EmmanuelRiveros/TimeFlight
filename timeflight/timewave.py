@@ -9,7 +9,9 @@ rendered along the same camera path, so every pixel of each clip has a known wor
 - if neither is (a present building removed, revealing past ground still outside the
   sphere), the past layer is shown, since no render exists for "present without that building".
 
-Everything is soft (a band of `softness_m` meters), so the front is a smooth, glowing edge.
+Everything is soft (a band of `softness_m` meters), so the front is a smooth, glowing edge. A tall
+building still changes era within that band, and the two eras overlap there as a ghost; an optional
+dust curtain (`front_curtain`), a wall of glowing dust standing on the front, hides that swap.
 Pure numpy; the camera model matches blender/render_place.py (planar depth, 36 mm sensor on the
 larger image dimension as in Blender's AUTO fit, camera up as close to world +Z as possible).
 """
@@ -21,6 +23,7 @@ from dataclasses import dataclass
 import numpy as np
 
 SENSOR_WIDTH_MM = 36.0
+CURTAIN_COLOR = (255, 222, 170)  # warm dust, a little paler than the glow
 
 
 def camera_basis(position: np.ndarray, target: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -108,6 +111,49 @@ def front_glow(dist_past: np.ndarray, radius: float, width: float, fade_in_m: fl
     return (fade * np.exp(-(((dist_past - radius) / width) ** 2))).astype(np.float32)
 
 
+def front_curtain(depth: np.ndarray, position, target, lens_mm: float, center, radius: float,
+                  ground_z: float, height: float, width: float, frame_t: float = 0.0) -> np.ndarray:
+    """Opacity (H, W) in [0, 1] of a wall of dust standing on the wave front: the cylinder of `radius`
+    around `center`, from `ground_z` up to `ground_z + height`, `width` meters thick.
+
+    Per pixel, the camera ray is intersected with the cylinder; each crossing in front of the visible
+    surface (planar depth < `depth`) and below the top adds dust. The path length through the wall
+    grows where the ray grazes it, so the wall's sides read as volume. Density fades toward the top,
+    and a slow noise fixed to the wall (angle, height) rises with `frame_t` (seconds)."""
+    h, w = depth.shape
+    if radius <= 0 or height <= 0:
+        return np.zeros((h, w), np.float32)
+    pos = np.asarray(position, float)
+    fwd, right, up = camera_basis(pos, np.asarray(target, float))
+    x, y = pixel_rays(w, h, lens_mm)
+    d = fwd + x[..., None] * right + y[..., None] * up       # point at planar depth t: pos + t * d
+    qx, qy = pos[0] - center[0], pos[1] - center[1]
+    a = d[..., 0] ** 2 + d[..., 1] ** 2
+    b = 2 * (qx * d[..., 0] + qy * d[..., 1])
+    c = qx * qx + qy * qy - radius * radius
+    disc = b * b - 4 * a * c
+    ok = (disc > 0) & (a > 1e-12)
+    root = np.sqrt(np.where(ok, disc, 0.0))
+    a_safe = np.where(a > 1e-12, a, 1.0)
+    transmit = np.ones((h, w))
+    for t in ((-b - root) / (2 * a_safe), (-b + root) / (2 * a_safe)):
+        hit_z = pos[2] + t * d[..., 2]
+        rel = (hit_z - ground_z) / height                      # 0 at the ground, 1 at the top
+        valid = ok & (t > 0) & (t < depth) & (rel >= 0) & (rel <= 1)
+        px, py = qx + t * d[..., 0], qy + t * d[..., 1]
+        # Path length through the wall: width / |cos| between the ray and the wall's normal.
+        cos = np.abs(px * d[..., 0] + py * d[..., 1]) / (radius * np.linalg.norm(d, axis=-1))
+        path = width / np.maximum(cos, 0.08)
+        ang = np.arctan2(py, px)
+        arc = ang * radius                                      # meters along the front
+        noise = (0.6 + 0.22 * np.sin(arc / 23.0 + hit_z * 0.05 - frame_t * 1.1)
+                 + 0.12 * np.sin(arc / 11.0 - hit_z * 0.09 + 1.3 - frame_t * 1.9)
+                 + 0.06 * np.sin((arc / 31.0 + hit_z / 17.0) * 1.7 - frame_t * 0.7))
+        density = (1 - np.clip(rel, 0.0, 1.0)) ** 1.5 * np.clip(noise, 0.0, 1.0) / width
+        transmit *= np.where(valid, np.exp(-density * path * 1.2), 1.0)
+    return (1.0 - transmit).astype(np.float32)
+
+
 def composite(present: np.ndarray, past: np.ndarray, alpha: np.ndarray, glow: np.ndarray | None = None,
               glow_color=(255, 214, 150), glow_strength: float = 0.6) -> np.ndarray:
     """Blend uint8 RGB frames (H, W, 3) with alpha (H, W); add the glow band on top."""
@@ -174,6 +220,10 @@ class WaveParams:
     softness: float = 25.0
     glow: float = 0.6
     glow_fade: float = 80.0
+    curtain: float = 0.0          # dust curtain opacity (0 = off)
+    curtain_height: float = 80.0  # m above the ground at the front
+    curtain_width: float = 30.0   # wall thickness, m
+    curtain_far: float = 4000.0   # the curtain is gone once the front is this far, m
 
 
 def timewave_frames(present: np.ndarray, past: np.ndarray, pass_present, pass_past, center, fps: float,
@@ -184,6 +234,7 @@ def timewave_frames(present: np.ndarray, past: np.ndarray, pass_present, pass_pa
         raise ValueError(f"clips {present.shape} / {past.shape} and passes "
                          f"{pass_present.frames} / {pass_past.frames} frames must match")
     f0, f1 = params.start_s * fps, params.end_s * fps
+    ground_z = 0.0
     sky_dist = params.r1 * 0.8  # the sky changes late, once the wave reaches the horizon
     h, w = present.shape[1:3]
     _check_aspect(present, pass_present.depth)
@@ -194,12 +245,31 @@ def timewave_frames(present: np.ndarray, past: np.ndarray, pass_present, pass_pa
         db = horizontal_distance(pass_past.depth[i], pass_past.sky[i], pos, tgt, lens, center, sky_dist)
         za = np.where(pass_present.sky[i], np.inf, pass_present.depth[i])
         zb = np.where(pass_past.sky[i], np.inf, pass_past.depth[i])
-        alpha = resize_mask(past_alpha(da, db, za, zb, r, params.softness).astype(np.float32), h, w)
+        alpha_lo = past_alpha(da, db, za, zb, r, params.softness).astype(np.float32)
+        alpha = resize_mask(alpha_lo, h, w)
         glow = None
         if params.glow > 0:
             glow = front_glow(db, r, max(params.softness, 0.04 * r), params.glow_fade) * (~pass_past.sky[i])
             glow = resize_mask(glow.astype(np.float32), h, w)
-        yield composite(present[i], past[i], alpha, glow, glow_strength=params.glow)
+        out = composite(present[i], past[i], alpha, glow, glow_strength=params.glow)
+        if params.curtain > 0 and r > 0:
+            # Ground height at the front: the median of the era's surfaces near it (the basin is flat).
+            band = np.abs(db - r) < max(params.softness, 0.04 * r)
+            if band.any():
+                pts_z = unproject(pass_past.depth[i], pos, tgt, lens)[..., 2]
+                ground_z = float(np.median(pts_z[band]))
+            fade = min(r / params.glow_fade, 1.0) ** 2 if params.glow_fade > 0 else 1.0
+            # The curtain thins out once the front is far away (the shore and the horizon).
+            fade *= float(np.clip((params.curtain_far - r) / (0.6 * params.curtain_far), 0.0, 1.0))
+            wall = front_curtain(np.minimum(pass_present.depth[i], pass_past.depth[i]), pos, tgt, lens, center, r,
+                                 ground_z, params.curtain_height, max(params.curtain_width, 0.02 * r), i / fps)
+            # Where the two eras overlap (alpha between 0 and 1) a building would show as a ghost: the
+            # dust is thickest exactly there.
+            ghost = (4 * alpha_lo * (1 - alpha_lo)) ** 0.7 * (~(pass_present.sky[i] & pass_past.sky[i]))
+            o = 1 - (1 - wall) * (1 - 0.9 * ghost)
+            o = resize_mask((o * (params.curtain * fade)).astype(np.float32), h, w)[..., None]
+            out = np.clip(out * (1 - o) + np.asarray(CURTAIN_COLOR, np.float32) * o + 0.5, 0, 255).astype(np.uint8)
+        yield out
 
 
 def zone_merge_frames(base: np.ndarray, zones_clip: np.ndarray, pass_era, rects, feather: float = 6.0):
