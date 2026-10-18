@@ -3,7 +3,8 @@ three generations, era merge, time wave, captions and credits -> one hero video.
 
   python app/run_flight.py --renders /content/place --results /content/flight_results
   python app/run_flight.py --dry-run          # print the inputs that would be set
-  python app/run_flight.py --preset teaser     # 9:16, 10 s (presets: hero, teaser, teaser_test)
+  python app/run_flight.py --preset teaser     # 9:16, 10 s
+  python app/run_flight.py --preset hero_s2    # 1920x1080: x2 latent upscale + 3 refine steps (stage 2)
 
 Needs ComfyUI on :8188 with the TimeFlight nodes installed (colab/setup_comfy.sh), comfy-api-proxy on
 :8189 and COMFY_BASE_URL=http://127.0.0.1:8189. Render folders are read by the TimeFlight nodes on the
@@ -23,12 +24,21 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "app"))
 from run_m0 import check_size, comfy_error, node_ids_by_title  # noqa: E402
 
-WORKFLOW = REPO / "workflows" / "api" / "timeflight_flight_api.json"
+WORKFLOWS = {1: REPO / "workflows" / "api" / "timeflight_flight_api.json",
+             2: REPO / "workflows" / "api" / "timeflight_flight_s2_api.json"}
 OUTPUTS = ("save", "save_present", "save_past_base", "save_past_zones")
 
 # Output formats. Times are seconds into the clip. Render folders come from blender/render_place.py
-# (+ scripts/make_control.py); the teaser flies the last 10 s of the hero path in portrait.
+# (+ scripts/make_control.py); the teaser flies the last 10 s of the hero path in portrait. `size` is the
+# stage 1 size (= the depth passes); stage 2 presets generate at twice that and resize to `out_size`.
 PRESETS = {
+    "hero_s2": dict(size=(1024, 576), frames=361, folders=("present_r1024_361", "1519_r1024_361"),
+                    wave=(3.5, 12.5), present_caption=(0.5, 3.3), past_caption=(12.0, 15.0), card_s=6.0,
+                    stages=2, out_size=(1920, 1080)),
+    # Small end-to-end check of stage 2 (last 2 s of the path) before the full hero.
+    "hero_s2_test": dict(size=(576, 320), frames=49, folders=("present_r576x320_49", "1519_r576x320_49"),
+                         wave=(0.3, 1.5), present_caption=(0.0, 0.3), past_caption=(1.5, 2.0), card_s=1.0,
+                         stages=2, out_size=(1152, 640)),
     "hero": dict(size=(1024, 576), frames=361, folders=("present_r1024_361", "1519_r1024_361"),
                  wave=(3.5, 12.5), present_caption=(0.5, 3.3), past_caption=(12.0, 15.0), card_s=6.0),
     "teaser": dict(size=(576, 1024), frames=241, folders=("present_v576x1024_241", "1519_v576x1024_241"),
@@ -48,6 +58,8 @@ def plan(args) -> dict[tuple[str, str], object]:
     check_size(w, h, n)
     present_folder, era_folder = pre["folders"]
     values = {
+        ("audio_mix", "flight_frames"): n,
+        ("audio_mix", "start_s"): pre["wave"][0], ("audio_mix", "end_s"): pre["wave"][1],
         ("present_pass", "render_dir"): (args.renders / (args.present_folder or present_folder)).as_posix(),
         ("past_pass", "render_dir"): (args.renders / (args.era_folder or era_folder)).as_posix(),
         ("time_wave", "start_s"): pre["wave"][0], ("time_wave", "end_s"): pre["wave"][1],
@@ -69,6 +81,8 @@ def plan(args) -> dict[tuple[str, str], object]:
         values[(f"{b}_audio_latent", "frames_number")] = n
         values[(f"{b}_seed", "noise_seed")] = args.seed
         values[(f"save_{b}", "filename_prefix")] = f"timeflight/flight/{args.name}_{b}"
+    if pre.get("stages", 1) == 2:
+        values[("output_size", "width")], values[("output_size", "height")] = pre["out_size"]
     return values
 
 
@@ -93,10 +107,12 @@ def main() -> None:
 
     args.name = args.name or f"{args.preset}_{args.era}"
     values = plan(args)
-    ids = node_ids_by_title(json.loads(WORKFLOW.read_text()))
+    workflow = WORKFLOWS[PRESETS[args.preset].get("stages", 1)]
+    print(f"workflow: {workflow.name}")
+    ids = node_ids_by_title(json.loads(workflow.read_text()))
     missing = sorted({title for title, _ in values} - set(ids))
     if missing:
-        raise SystemExit(f"{WORKFLOW.name} has no nodes titled {missing}: rebuild it with workflows/build_flight.py")
+        raise SystemExit(f"{workflow.name} has no nodes titled {missing}: rebuild it with workflows/build_flight.py")
     for (title, name), value in values.items():
         shown = value if not isinstance(value, str) or len(value) < 70 else value[:67] + "..."
         print(f"{title}.{name} = {shown}")
@@ -108,11 +124,11 @@ def main() -> None:
     from comfy_sdk import Comfy  # imported late so --dry-run works without the SDK
 
     client = Comfy()
-    wf = client.workflows.from_file(str(WORKFLOW))
+    wf = client.workflows.from_file(str(workflow))
     for (title, name), value in values.items():
         wf.set_input(ids[title], name, value)
     args.results.mkdir(parents=True, exist_ok=True)
-    rec = {"name": args.name, "seed": args.seed, "era": args.era}
+    rec = {"name": args.name, "preset": args.preset, "seed": args.seed, "era": args.era}
     t0 = time.time()
     try:
         job = client.run(wf)

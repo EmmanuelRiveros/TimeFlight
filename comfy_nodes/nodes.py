@@ -28,6 +28,17 @@ def _to_image(frames: np.ndarray):
     return torch.from_numpy(np.ascontiguousarray(frames)).float().div(255.0)
 
 
+def _audio_np(audio) -> tuple[np.ndarray, int]:
+    """ComfyUI AUDIO {"waveform": [batch, channels, samples], "sample_rate"} -> (channels, samples), rate."""
+    return audio["waveform"][0].float().cpu().numpy(), int(audio["sample_rate"])
+
+
+def _to_audio(waveform: np.ndarray, sample_rate: int) -> dict:
+    import torch
+
+    return {"waveform": torch.from_numpy(np.ascontiguousarray(waveform))[None], "sample_rate": sample_rate}
+
+
 def _manifest(place_dir: str, era: str) -> dict:
     return json.loads((Path(place_dir) / "eras" / f"{era}.json").read_text(encoding="utf-8"))
 
@@ -164,15 +175,47 @@ class TimeFlightCredits:
         return (_to_image(np.concatenate([captioned, tail])), to_markdown(c))
 
 
+class TimeFlightAudioMix:
+    """Soundtrack of the flight: the present clip's audio crossfades into the past clip's audio on the
+    wave's timing, fades out at the end of the flight and stays silent under the credit cards."""
+
+    CATEGORY = CATEGORY
+    FUNCTION = "mix"
+    RETURN_TYPES = ("AUDIO",)
+    RETURN_NAMES = ("audio",)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        f = lambda d, hi: ("FLOAT", {"default": d, "min": 0.0, "max": hi, "step": 0.1})  # noqa: E731
+        return {"required": {
+            "images": ("IMAGE",), "present": ("AUDIO",), "past": ("AUDIO",),
+            "fps": ("FLOAT", {"default": 24.0, "min": 1.0, "max": 120.0, "step": 1.0}),
+            "flight_frames": ("INT", {"default": 361, "min": 1, "max": 100000}),
+            "start_s": f(3.5, 600.0), "end_s": f(12.5, 600.0), "fade_out_s": f(1.5, 60.0),
+        }}
+
+    def mix(self, images, present, past, fps, flight_frames, start_s, end_s, fade_out_s):
+        from timeflight.audio import mix_eras
+
+        (a, sr), (b, sr_b) = _audio_np(present), _audio_np(past)
+        if sr != sr_b:
+            raise ValueError(f"sample rates differ: {sr} and {sr_b}")
+        out = mix_eras(a, b, sr, start_s, end_s, total_s=len(images) / fps, clip_s=flight_frames / fps,
+                       fade_out_s=fade_out_s)
+        return (_to_audio(out, sr),)
+
+
 NODE_CLASS_MAPPINGS = {
     "TimeFlightLoadPass": TimeFlightLoadPass,
     "TimeFlightEraMerge": TimeFlightEraMerge,
     "TimeFlightTimeWave": TimeFlightTimeWave,
     "TimeFlightCredits": TimeFlightCredits,
+    "TimeFlightAudioMix": TimeFlightAudioMix,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "TimeFlightLoadPass": "TimeFlight: Load Render Pass",
     "TimeFlightEraMerge": "TimeFlight: Era Zone Merge",
     "TimeFlightTimeWave": "TimeFlight: Time Wave",
     "TimeFlightCredits": "TimeFlight: Captions and Credits",
+    "TimeFlightAudioMix": "TimeFlight: Audio Crossfade",
 }

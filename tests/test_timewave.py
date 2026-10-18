@@ -81,3 +81,32 @@ def test_portrait_fits_the_sensor_to_the_height():
     uvz = project(unproject(depth, POS, TGT, 24.0), POS, TGT, 24.0, 36, 64)
     u, v = np.meshgrid(np.arange(36) + 0.5, np.arange(64) + 0.5)
     assert uvz[..., 0] == pytest.approx(u, abs=1e-6) and uvz[..., 1] == pytest.approx(v, abs=1e-6)
+
+
+def test_resize_mask_upscales_and_keeps_values():
+    from timeflight.timewave import resize_mask
+
+    m = np.zeros((4, 6), np.float32)
+    m[:, 3:] = 1.0
+    up = resize_mask(m, 8, 12)
+    assert up.shape == (8, 12)
+    assert up[:, :5].max() == 0.0 and up[:, 7:].min() == 1.0
+    assert 0 < up[0, 5] < 1 and 0 < up[0, 6] < 1  # soft at the edge
+    assert resize_mask(m, 4, 6) is m
+
+
+def test_zone_merge_on_frames_larger_than_the_pass():
+    from timeflight.passes import RenderPass
+    from timeflight.timewave import zone_merge_frames
+
+    depth = np.full((2, 36, 64), 400.0, np.float32)
+    pos = np.tile(POS, (2, 1))
+    tgt = np.tile(TGT, (2, 1))
+    rp = RenderPass(depth, depth > 1e9, pos, tgt, 24.0, {"lat": 0, "lon": 0, "h": 0}, 24.0, "x")
+    base = np.zeros((2, 72, 128, 3), np.uint8)
+    zones = np.full((2, 72, 128, 3), 200, np.uint8)
+    big = [-1e6, -1e6, 1e6, 1e6]
+    out = list(zone_merge_frames(base, zones, rp, [big]))
+    assert out[0].shape == (72, 128, 3) and out[0].min() >= 199
+    with pytest.raises(ValueError):
+        list(zone_merge_frames(base[:, :, :100], zones[:, :, :100], rp, [big]))

@@ -38,11 +38,13 @@ def test_node_inputs_match_function_signature(name, cls):
     assert name in N.NODE_DISPLAY_NAME_MAPPINGS
 
 
-def test_flight_workflow_wires_timeflight_nodes_correctly():
-    wf = _load(REPO / "workflows" / "build_flight.py", "build_flight").build()
+@pytest.mark.parametrize("stage2", [False, True])
+def test_flight_workflow_wires_timeflight_nodes_correctly(stage2):
+    wf = _load(REPO / "workflows" / "build_flight.py", "build_flight").build(stage2=stage2)
     validate = _load(REPO / "scripts" / "validate_workflow.py", "validate_workflow").validate
     ours = {k: v for k, v in wf.items() if v["class_type"] in N.NODE_CLASS_MAPPINGS}
-    assert len(ours) == 5
+    assert len(ours) == 6
+    assert any(v["class_type"] == "LTXVLatentUpsampler" for v in wf.values()) == stage2
     # Input names and required inputs of our nodes. Core and LTX nodes are accepted as they are here;
     # scripts/validate_workflow.py checks them against the live server on Colab.
     info = object_info()
@@ -50,7 +52,7 @@ def test_flight_workflow_wires_timeflight_nodes_correctly():
                   for v in wf.values() if v["class_type"] not in info}
     assert validate(wf, info | permissive) == []
     # Types on every link that leaves one of our nodes.
-    core_expect = {"image": "IMAGE", "images": "IMAGE"}
+    core_expect = {"image": "IMAGE", "images": "IMAGE", "audio": "AUDIO"}
     for nid, node in wf.items():
         for inp, val in node["inputs"].items():
             if not (isinstance(val, list) and len(val) == 2 and val[0] in ours):
@@ -97,3 +99,15 @@ def test_credits_node_appends_cards(no_torch):
     assert len(images) > 48 and images.shape[1:] == frames.shape[1:]
     assert images[10].max() > 0  # caption burned in
     assert "Matos Moctezuma" in md and "DRAFT" not in md
+
+
+def test_audio_mix_node(monkeypatch):
+    monkeypatch.setattr(N, "_audio_np", lambda a: (a["waveform"], a["sample_rate"]))
+    monkeypatch.setattr(N, "_to_audio", lambda w, sr: {"waveform": w, "sample_rate": sr})
+    sr = 100
+    present = {"waveform": np.ones((2, 2 * sr), np.float32), "sample_rate": sr}
+    past = {"waveform": -np.ones((2, 2 * sr), np.float32), "sample_rate": sr}
+    images = np.zeros((72, 4, 4, 3))  # 3 s at 24 fps: 2 s of flight + 1 s of cards
+    (audio,) = N.TimeFlightAudioMix().mix(images, present, past, 24.0, 48, 0.5, 1.0, 0.0)
+    w = audio["waveform"]
+    assert w.shape == (2, 3 * sr) and w[0, 10] == 1.0 and w[0, 150] == -1.0 and not w[:, 2 * sr:].any()

@@ -2,6 +2,7 @@
 # Full TimeFlight run (M4): 3 generations -> era merge -> time wave -> captions and credits -> video.
 #   bash colab/flight.sh                                         # hero (flight_inputs.zip)
 #   bash colab/flight.sh teaser_inputs.zip teaser_test teaser    # small portrait check, then the teaser
+#   bash colab/flight.sh polish_inputs.zip hero_s2_test hero_s2  # stage 2 (x2 latent upscale), 1920x1080
 # The zip (scripts/pack_m0.py ... --with-depth) must be in MyDrive/timeflight/. Presets run in order and
 # the script stops at the first failure. Servers must be started after colab/setup_comfy.sh, which
 # installs the TimeFlight nodes; ComfyUI is restarted here if it predates them.
@@ -30,11 +31,19 @@ if ! nodes_loaded; then
 fi
 echo "TimeFlight nodes loaded"
 
+STAGE2=0
+[[ " ${PRESETS[*]} " == *_s2* ]] && STAGE2=1
+if [ $STAGE2 = 1 ]; then
+  # Stage 2 needs the latent upscaler; files already on disk are not downloaded again.
+  python scripts/download_models.py --comfy-dir /content/ComfyUI --precision auto --with-upscaler | tail -3
+fi
 python workflows/build_flight.py --models-json /content/ComfyUI/timeflight_models.json
 python scripts/validate_workflow.py workflows/api/timeflight_flight_api.json
+[ $STAGE2 = 0 ] || python scripts/validate_workflow.py workflows/api/timeflight_flight_s2_api.json
 mkdir -p /content/drive/MyDrive/timeflight/flight_results
 for preset in "${PRESETS[@]}"; do
   echo "== $preset"
   python app/run_flight.py --preset "$preset" --renders /content/place --results /content/flight_results
+  free -g | head -2; nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader
   cp -r /content/flight_results/. /content/drive/MyDrive/timeflight/flight_results/
 done

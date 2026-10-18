@@ -93,6 +93,13 @@ Upload `teaser_inputs.zip` (made with `scripts/pack_m0.py --src out/teaser --fol
     ("code", """!git -C /content/TimeFlight pull -q
 !bash /content/TimeFlight/colab/flight.sh teaser_inputs.zip teaser_test teaser
 gpu_hours(); assert _exit_code == 0, 'teaser failed: send the error above'"""),
+    ("md", """## Hero polish: stage 2 (x2 latent upscale + 3 refine steps), 1920x1080, LTX audio
+Upload `polish_inputs.zip` (made with `scripts/pack_m0.py --src out/polish --folders present_r1024_361 1519_r1024_361
+present_r576x320_49 1519_r576x320_49 --out out/polish_inputs.zip --with-depth`) to `MyDrive/timeflight/`.
+Runs a 2 s stage-2 check at 1152x640 first, then the full hero."""),
+    ("code", """!git -C /content/TimeFlight pull -q
+!bash /content/TimeFlight/colab/flight.sh polish_inputs.zip hero_s2_test hero_s2
+gpu_hours(); assert _exit_code == 0, 'polish failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/

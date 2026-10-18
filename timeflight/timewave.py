@@ -118,6 +118,31 @@ def composite(present: np.ndarray, past: np.ndarray, alpha: np.ndarray, glow: np
     return np.clip(out + 0.5, 0, 255).astype(np.uint8)
 
 
+def resize_mask(m: np.ndarray, height: int, width: int) -> np.ndarray:
+    """Bilinear resize of a float mask (h, w) to (height, width), pixel centers aligned. Masks are
+    computed at the depth pass resolution and applied to frames of any size (e.g. a 2x upscale)."""
+    h, w = m.shape
+    if (h, w) == (height, width):
+        return m
+
+    def axis(n_out: int, n_in: int):
+        x = np.clip((np.arange(n_out) + 0.5) * n_in / n_out - 0.5, 0, n_in - 1)
+        i0 = np.floor(x).astype(int)
+        i1 = np.minimum(i0 + 1, n_in - 1)
+        return i0, i1, (x - i0).astype(np.float32)
+
+    y0, y1, fy = axis(height, h)
+    x0, x1, fx = axis(width, w)
+    rows = m[y0] * (1 - fy[:, None]) + m[y1] * fy[:, None]
+    return (rows[:, x0] * (1 - fx) + rows[:, x1] * fx).astype(np.float32)
+
+
+def _check_aspect(clip: np.ndarray, depth: np.ndarray) -> None:
+    (h, w), (ph, pw) = clip.shape[1:3], depth.shape[1:3]
+    if abs(w * ph - pw * h) > 0.01 * pw * h:
+        raise ValueError(f"clip {w}x{h} and depth pass {pw}x{ph} differ in aspect")
+
+
 def rects_mask(xy: np.ndarray, rects, feather: float) -> np.ndarray:
     """Soft membership (..., ) in [0, 1] of points (..., 2) in a union of axis-aligned rects
     [x0, y0, x1, y1]; 0.5 on the edges, `feather` meters wide."""
@@ -153,12 +178,15 @@ class WaveParams:
 
 def timewave_frames(present: np.ndarray, past: np.ndarray, pass_present, pass_past, center, fps: float,
                     params: WaveParams = WaveParams()):
-    """Yield composited uint8 frames. `pass_*` are timeflight.passes.RenderPass of the same path."""
+    """Yield composited uint8 frames. `pass_*` are timeflight.passes.RenderPass of the same path; the
+    clips may be larger than the passes (same aspect), the masks are then resized to the clips."""
     if present.shape != past.shape or len(present) != pass_present.frames or len(past) != pass_past.frames:
         raise ValueError(f"clips {present.shape} / {past.shape} and passes "
                          f"{pass_present.frames} / {pass_past.frames} frames must match")
     f0, f1 = params.start_s * fps, params.end_s * fps
     sky_dist = params.r1 * 0.8  # the sky changes late, once the wave reaches the horizon
+    h, w = present.shape[1:3]
+    _check_aspect(present, pass_present.depth)
     for i in range(len(present)):
         r = wave_radius(i, f0, f1, params.r0, params.r1)
         pos, tgt, lens = pass_present.position[i], pass_present.target[i], pass_present.lens_mm
@@ -166,19 +194,24 @@ def timewave_frames(present: np.ndarray, past: np.ndarray, pass_present, pass_pa
         db = horizontal_distance(pass_past.depth[i], pass_past.sky[i], pos, tgt, lens, center, sky_dist)
         za = np.where(pass_present.sky[i], np.inf, pass_present.depth[i])
         zb = np.where(pass_past.sky[i], np.inf, pass_past.depth[i])
-        alpha = past_alpha(da, db, za, zb, r, params.softness)
+        alpha = resize_mask(past_alpha(da, db, za, zb, r, params.softness).astype(np.float32), h, w)
         glow = None
         if params.glow > 0:
             glow = front_glow(db, r, max(params.softness, 0.04 * r), params.glow_fade) * (~pass_past.sky[i])
+            glow = resize_mask(glow.astype(np.float32), h, w)
         yield composite(present[i], past[i], alpha, glow, glow_strength=params.glow)
 
 
 def zone_merge_frames(base: np.ndarray, zones_clip: np.ndarray, pass_era, rects, feather: float = 6.0):
-    """Yield uint8 frames: `zones_clip` inside the world rects, `base` elsewhere (same depth path)."""
+    """Yield uint8 frames: `zones_clip` inside the world rects, `base` elsewhere (same depth path).
+    The clips may be larger than the pass (same aspect); the mask is resized to them."""
     if base.shape != zones_clip.shape or len(base) != pass_era.frames:
         raise ValueError(f"clips {base.shape} / {zones_clip.shape} and pass {pass_era.frames} frames must match")
+    h, w_px = base.shape[1:3]
+    _check_aspect(base, pass_era.depth)
     for i in range(len(base)):
         xy = unproject(pass_era.depth[i], pass_era.position[i], pass_era.target[i], pass_era.lens_mm)[..., :2]
         w = rects_mask(xy, rects, feather)
         w[pass_era.sky[i]] = 0.0
+        w = resize_mask(w, h, w_px)
         yield np.clip(base[i] * (1 - w[..., None]) + zones_clip[i] * w[..., None] + 0.5, 0, 255).astype(np.uint8)

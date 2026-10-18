@@ -323,23 +323,43 @@
     }
   },
   "23": {
+    "class_type": "LTXVAudioVAEDecode",
+    "inputs": {
+      "samples": [
+        "20",
+        1
+      ],
+      "audio_vae": [
+        "5",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "present_audio_decode"
+    }
+  },
+  "24": {
     "class_type": "CreateVideo",
     "inputs": {
       "images": [
         "22",
         0
       ],
-      "fps": 24.0
+      "fps": 24.0,
+      "audio": [
+        "23",
+        0
+      ]
     },
     "_meta": {
       "title": "present_video"
     }
   },
-  "24": {
+  "25": {
     "class_type": "SaveVideo",
     "inputs": {
       "video": [
-        "23",
+        "24",
         0
       ],
       "filename_prefix": "timeflight/flight/present",
@@ -350,7 +370,7 @@
       "title": "save_present"
     }
   },
-  "25": {
+  "26": {
     "class_type": "CLIPTextEncode",
     "inputs": {
       "text": "",
@@ -363,11 +383,11 @@
       "title": "past_base_prompt"
     }
   },
-  "26": {
+  "27": {
     "class_type": "LTXVConditioning",
     "inputs": {
       "positive": [
-        "25",
+        "26",
         0
       ],
       "negative": [
@@ -380,7 +400,7 @@
       "title": "past_base_conditioning"
     }
   },
-  "27": {
+  "28": {
     "class_type": "EmptyLTXVLatentVideo",
     "inputs": {
       "width": 1024,
@@ -392,15 +412,15 @@
       "title": "past_base_latent"
     }
   },
-  "28": {
+  "29": {
     "class_type": "LTXAddVideoICLoRAGuide",
     "inputs": {
       "positive": [
-        "26",
+        "27",
         0
       ],
       "negative": [
-        "26",
+        "27",
         1
       ],
       "vae": [
@@ -408,7 +428,7 @@
         0
       ],
       "latent": [
-        "27",
+        "28",
         0
       ],
       "image": [
@@ -430,7 +450,7 @@
       "title": "past_base_guide"
     }
   },
-  "29": {
+  "30": {
     "class_type": "LTXVEmptyLatentAudio",
     "inputs": {
       "frames_number": 361,
@@ -445,15 +465,15 @@
       "title": "past_base_audio_latent"
     }
   },
-  "30": {
+  "31": {
     "class_type": "LTXVConcatAVLatent",
     "inputs": {
       "video_latent": [
-        "28",
+        "29",
         2
       ],
       "audio_latent": [
-        "29",
+        "30",
         0
       ]
     },
@@ -461,7 +481,7 @@
       "title": "past_base_av_latent"
     }
   },
-  "31": {
+  "32": {
     "class_type": "RandomNoise",
     "inputs": {
       "noise_seed": 42
@@ -470,7 +490,7 @@
       "title": "past_base_seed"
     }
   },
-  "32": {
+  "33": {
     "class_type": "CFGGuider",
     "inputs": {
       "model": [
@@ -478,11 +498,11 @@
         0
       ],
       "positive": [
-        "28",
+        "29",
         0
       ],
       "negative": [
-        "28",
+        "29",
         1
       ],
       "cfg": 1.0
@@ -491,15 +511,15 @@
       "title": "past_base_guider"
     }
   },
-  "33": {
+  "34": {
     "class_type": "SamplerCustomAdvanced",
     "inputs": {
       "noise": [
-        "31",
+        "32",
         0
       ],
       "guider": [
-        "32",
+        "33",
         0
       ],
       "sampler": [
@@ -511,7 +531,7 @@
         0
       ],
       "latent_image": [
-        "30",
+        "31",
         0
       ]
     },
@@ -519,11 +539,11 @@
       "title": "past_base_sample"
     }
   },
-  "34": {
+  "35": {
     "class_type": "LTXVSeparateAVLatent",
     "inputs": {
       "av_latent": [
-        "33",
+        "34",
         0
       ]
     },
@@ -531,19 +551,19 @@
       "title": "past_base_split_av"
     }
   },
-  "35": {
+  "36": {
     "class_type": "LTXVCropGuides",
     "inputs": {
       "positive": [
-        "28",
+        "29",
         0
       ],
       "negative": [
-        "28",
+        "29",
         1
       ],
       "latent": [
-        "34",
+        "35",
         0
       ]
     },
@@ -551,11 +571,11 @@
       "title": "past_base_crop_guides"
     }
   },
-  "36": {
+  "37": {
     "class_type": "VAEDecodeTiled",
     "inputs": {
       "samples": [
-        "35",
+        "36",
         2
       ],
       "vae": [
@@ -571,24 +591,44 @@
       "title": "past_base_decode"
     }
   },
-  "37": {
+  "38": {
+    "class_type": "LTXVAudioVAEDecode",
+    "inputs": {
+      "samples": [
+        "35",
+        1
+      ],
+      "audio_vae": [
+        "5",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_base_audio_decode"
+    }
+  },
+  "39": {
     "class_type": "CreateVideo",
     "inputs": {
       "images": [
-        "36",
+        "37",
         0
       ],
-      "fps": 24.0
+      "fps": 24.0,
+      "audio": [
+        "38",
+        0
+      ]
     },
     "_meta": {
       "title": "past_base_video"
     }
   },
-  "38": {
+  "40": {
     "class_type": "SaveVideo",
     "inputs": {
       "video": [
-        "37",
+        "39",
         0
       ],
       "filename_prefix": "timeflight/flight/past_base",
@@ -599,7 +639,7 @@
       "title": "save_past_base"
     }
   },
-  "39": {
+  "41": {
     "class_type": "CLIPTextEncode",
     "inputs": {
       "text": "",
@@ -612,11 +652,11 @@
       "title": "past_zones_prompt"
     }
   },
-  "40": {
+  "42": {
     "class_type": "LTXVConditioning",
     "inputs": {
       "positive": [
-        "39",
+        "41",
         0
       ],
       "negative": [
@@ -629,7 +669,7 @@
       "title": "past_zones_conditioning"
     }
   },
-  "41": {
+  "43": {
     "class_type": "EmptyLTXVLatentVideo",
     "inputs": {
       "width": 1024,
@@ -641,15 +681,15 @@
       "title": "past_zones_latent"
     }
   },
-  "42": {
+  "44": {
     "class_type": "LTXAddVideoICLoRAGuide",
     "inputs": {
       "positive": [
-        "40",
+        "42",
         0
       ],
       "negative": [
-        "40",
+        "42",
         1
       ],
       "vae": [
@@ -657,7 +697,7 @@
         0
       ],
       "latent": [
-        "41",
+        "43",
         0
       ],
       "image": [
@@ -679,7 +719,7 @@
       "title": "past_zones_guide"
     }
   },
-  "43": {
+  "45": {
     "class_type": "LTXVEmptyLatentAudio",
     "inputs": {
       "frames_number": 361,
@@ -694,15 +734,15 @@
       "title": "past_zones_audio_latent"
     }
   },
-  "44": {
+  "46": {
     "class_type": "LTXVConcatAVLatent",
     "inputs": {
       "video_latent": [
-        "42",
+        "44",
         2
       ],
       "audio_latent": [
-        "43",
+        "45",
         0
       ]
     },
@@ -710,7 +750,7 @@
       "title": "past_zones_av_latent"
     }
   },
-  "45": {
+  "47": {
     "class_type": "RandomNoise",
     "inputs": {
       "noise_seed": 42
@@ -719,7 +759,7 @@
       "title": "past_zones_seed"
     }
   },
-  "46": {
+  "48": {
     "class_type": "CFGGuider",
     "inputs": {
       "model": [
@@ -727,11 +767,11 @@
         0
       ],
       "positive": [
-        "42",
+        "44",
         0
       ],
       "negative": [
-        "42",
+        "44",
         1
       ],
       "cfg": 1.0
@@ -740,15 +780,15 @@
       "title": "past_zones_guider"
     }
   },
-  "47": {
+  "49": {
     "class_type": "SamplerCustomAdvanced",
     "inputs": {
       "noise": [
-        "45",
+        "47",
         0
       ],
       "guider": [
-        "46",
+        "48",
         0
       ],
       "sampler": [
@@ -760,7 +800,7 @@
         0
       ],
       "latent_image": [
-        "44",
+        "46",
         0
       ]
     },
@@ -768,11 +808,11 @@
       "title": "past_zones_sample"
     }
   },
-  "48": {
+  "50": {
     "class_type": "LTXVSeparateAVLatent",
     "inputs": {
       "av_latent": [
-        "47",
+        "49",
         0
       ]
     },
@@ -780,19 +820,19 @@
       "title": "past_zones_split_av"
     }
   },
-  "49": {
+  "51": {
     "class_type": "LTXVCropGuides",
     "inputs": {
       "positive": [
-        "42",
+        "44",
         0
       ],
       "negative": [
-        "42",
+        "44",
         1
       ],
       "latent": [
-        "48",
+        "50",
         0
       ]
     },
@@ -800,11 +840,11 @@
       "title": "past_zones_crop_guides"
     }
   },
-  "50": {
+  "52": {
     "class_type": "VAEDecodeTiled",
     "inputs": {
       "samples": [
-        "49",
+        "51",
         2
       ],
       "vae": [
@@ -820,24 +860,44 @@
       "title": "past_zones_decode"
     }
   },
-  "51": {
+  "53": {
+    "class_type": "LTXVAudioVAEDecode",
+    "inputs": {
+      "samples": [
+        "50",
+        1
+      ],
+      "audio_vae": [
+        "5",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "past_zones_audio_decode"
+    }
+  },
+  "54": {
     "class_type": "CreateVideo",
     "inputs": {
       "images": [
-        "50",
+        "52",
         0
       ],
-      "fps": 24.0
+      "fps": 24.0,
+      "audio": [
+        "53",
+        0
+      ]
     },
     "_meta": {
       "title": "past_zones_video"
     }
   },
-  "52": {
+  "55": {
     "class_type": "SaveVideo",
     "inputs": {
       "video": [
-        "51",
+        "54",
         0
       ],
       "filename_prefix": "timeflight/flight/past_zones",
@@ -848,15 +908,15 @@
       "title": "save_past_zones"
     }
   },
-  "53": {
+  "56": {
     "class_type": "TimeFlightEraMerge",
     "inputs": {
       "base": [
-        "36",
+        "37",
         0
       ],
       "zones": [
-        "50",
+        "52",
         0
       ],
       "era_pass": [
@@ -871,7 +931,7 @@
       "title": "era_merge"
     }
   },
-  "54": {
+  "57": {
     "class_type": "TimeFlightTimeWave",
     "inputs": {
       "present": [
@@ -879,7 +939,7 @@
         0
       ],
       "past": [
-        "53",
+        "56",
         0
       ],
       "present_pass": [
@@ -905,11 +965,11 @@
       "title": "time_wave"
     }
   },
-  "55": {
+  "58": {
     "class_type": "TimeFlightCredits",
     "inputs": {
       "images": [
-        "54",
+        "57",
         0
       ],
       "place_dir": "/content/TimeFlight/places/tenochtitlan_zocalo",
@@ -928,24 +988,53 @@
       "title": "credits"
     }
   },
-  "56": {
+  "59": {
+    "class_type": "TimeFlightAudioMix",
+    "inputs": {
+      "images": [
+        "58",
+        0
+      ],
+      "present": [
+        "23",
+        0
+      ],
+      "past": [
+        "38",
+        0
+      ],
+      "fps": 24.0,
+      "flight_frames": 361,
+      "start_s": 3.5,
+      "end_s": 12.5,
+      "fade_out_s": 1.5
+    },
+    "_meta": {
+      "title": "audio_mix"
+    }
+  },
+  "60": {
     "class_type": "CreateVideo",
     "inputs": {
       "images": [
-        "55",
+        "58",
         0
       ],
-      "fps": 24.0
+      "fps": 24.0,
+      "audio": [
+        "59",
+        0
+      ]
     },
     "_meta": {
       "title": "hero_video"
     }
   },
-  "57": {
+  "61": {
     "class_type": "SaveVideo",
     "inputs": {
       "video": [
-        "56",
+        "60",
         0
       ],
       "filename_prefix": "timeflight/flight/hero",
