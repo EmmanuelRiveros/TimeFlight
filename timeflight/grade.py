@@ -24,7 +24,7 @@ LUMA = np.array([0.2126, 0.7152, 0.0722], np.float32)  # Rec. 709
 class GradeParams:
     clarity: float = 0.3      # amount of large-radius luminance detail added back (0 = off)
     radius: float = 0.01      # clarity blur radius, as a fraction of the frame width
-    grain: float = 0.025      # grain standard deviation in the midtones, in 0..1 units (0 = off)
+    grain: float = 0.012      # grain standard deviation in the midtones, in 0..1 units (0 = off; ~3 levels)
     grain_size: float = 0.7   # grain blur sigma in pixels at 1920 px width (scaled with the frame)
 
 
