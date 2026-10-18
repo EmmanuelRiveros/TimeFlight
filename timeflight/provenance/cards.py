@@ -40,7 +40,7 @@ def render_cards(title: str, notice: list[str], sections, size, draft: bool) -> 
     from PIL import Image, ImageDraw
 
     w, h = size
-    s = h / 576
+    s = min(w, h) / 576  # same type size on a 1024x576 card and a 576x1024 one
     margin, f_title, f_head, f_body = int(56 * s), font("Semibold", int(30 * s)), font("Semibold", int(19 * s)), \
         font("Regular", int(16 * s))
     gap = int(6 * s)
@@ -90,15 +90,19 @@ def burn_caption(frame: np.ndarray, text: str, alpha: float, f) -> np.ndarray:
     d = ImageDraw.Draw(layer)
     x, y = int(img.width * 0.05), int(img.height * 0.88)
     a = int(255 * alpha)
-    d.text((x + 2, y + 2), text, font=f, fill=(0, 0, 0, int(a * 0.6)), anchor="ls")
-    d.text((x, y), text, font=f, fill=(*FG, a), anchor="ls")
+    lines = wrap(d, text, f, int(img.width * 0.9))
+    line_h = int(f.size * 1.2)
+    for k, line in enumerate(lines):  # wrap upward from the baseline, so the last line sits at y
+        ly = y - (len(lines) - 1 - k) * line_h
+        d.text((x + 2, ly + 2), line, font=f, fill=(0, 0, 0, int(a * 0.6)), anchor="ls")
+        d.text((x, ly), line, font=f, fill=(*FG, a), anchor="ls")
     return np.asarray(Image.alpha_composite(img, layer).convert("RGB"))
 
 
 def caption_frames(frames: np.ndarray, captions, fps: float, fade: float = 0.4) -> np.ndarray:
     """Burn (start_s, end_s, text) captions into a copy of uint8 frames (F, H, W, 3), fading in and out."""
     out = frames.copy()
-    f_cap = font("Semibold", int(frames.shape[1] * 0.045))
+    f_cap = font("Semibold", int(min(frames.shape[1:3]) * 0.045))
     for t0, t1, text in captions:
         for i in range(int(t0 * fps), min(int(t1 * fps) + 1, len(out))):
             t = i / fps

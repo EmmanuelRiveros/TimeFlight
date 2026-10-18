@@ -109,6 +109,7 @@ def add_camera(scene, cam_json, start, frames):
     data = bpy.data.cameras.new("Cam")
     data.lens = cam_json["lens_mm"]
     data.sensor_width = 36.0
+    data.sensor_fit = "AUTO"  # 36 mm on the larger image dimension (timeflight.timewave.half_extents)
     data.clip_start = 1.0
     data.clip_end = 60000.0
     cam = bpy.data.objects.new("Cam", data)

@@ -87,6 +87,12 @@ to `MyDrive/timeflight/`. About 3 × 2 min of generation plus a few minutes of c
 Results are copied to `MyDrive/timeflight/flight_results/`."""),
     ("code", """!bash /content/TimeFlight/colab/flight.sh
 gpu_hours(); assert _exit_code == 0, 'flight failed: send the error above'"""),
+    ("md", """## 9:16 teaser (10 s): small portrait check, then the teaser
+Upload `teaser_inputs.zip` (made with `scripts/pack_m0.py --src out/teaser --folders present_v576x1024_241
+1519_v576x1024_241 present_v320x576_49 1519_v320x576_49 --out out/teaser_inputs.zip --with-depth`) to `MyDrive/timeflight/`."""),
+    ("code", """!git -C /content/TimeFlight pull -q
+!bash /content/TimeFlight/colab/flight.sh teaser_inputs.zip teaser_test teaser
+gpu_hours(); assert _exit_code == 0, 'teaser failed: send the error above'"""),
     ("code", """!mkdir -p /content/drive/MyDrive/timeflight/m0_results
 !cp -r /content/m0_results/. /content/drive/MyDrive/timeflight/m0_results/
 !cp /content/versions.txt /content/ComfyUI/timeflight_models.json /content/drive/MyDrive/timeflight/m0_results/

@@ -10,8 +10,8 @@ rendered along the same camera path, so every pixel of each clip has a known wor
   sphere), the past layer is shown, since no render exists for "present without that building".
 
 Everything is soft (a band of `softness_m` meters), so the front is a smooth, glowing edge.
-Pure numpy; the camera model matches blender/render_place.py (planar depth, 36 mm sensor
-width, horizontal sensor fit, camera up as close to world +Z as possible).
+Pure numpy; the camera model matches blender/render_place.py (planar depth, 36 mm sensor on the
+larger image dimension as in Blender's AUTO fit, camera up as close to world +Z as possible).
 """
 
 from __future__ import annotations
@@ -36,10 +36,18 @@ def camera_basis(position: np.ndarray, target: np.ndarray) -> tuple[np.ndarray, 
     return fwd, right, up
 
 
+def half_extents(width: int, height: int, lens_mm: float) -> tuple[float, float]:
+    """Half image size at planar depth 1. Blender's sensor fit AUTO puts the 36 mm sensor on the larger
+    image dimension: the width in landscape, the height in portrait."""
+    half_major = SENSOR_WIDTH_MM / 2 / lens_mm
+    if width >= height:
+        return half_major, half_major * height / width
+    return half_major * width / height, half_major
+
+
 def pixel_rays(width: int, height: int, lens_mm: float) -> tuple[np.ndarray, np.ndarray]:
     """Camera-space offsets per pixel center at planar depth 1: (x right, y up), each (H, W)."""
-    half_w = SENSOR_WIDTH_MM / 2 / lens_mm
-    half_h = half_w * height / width
+    half_w, half_h = half_extents(width, height, lens_mm)
     x = ((np.arange(width) + 0.5) / width * 2 - 1) * half_w
     y = (1 - (np.arange(height) + 0.5) / height * 2) * half_h
     return np.meshgrid(x, y)
@@ -59,8 +67,7 @@ def project(points: np.ndarray, position, target, lens_mm: float, width: int, he
     fwd, right, up = camera_basis(np.asarray(position, float), np.asarray(target, float))
     rel = np.asarray(points, float) - np.asarray(position, float)
     z = rel @ fwd
-    half_w = SENSOR_WIDTH_MM / 2 / lens_mm
-    half_h = half_w * height / width
+    half_w, half_h = half_extents(width, height, lens_mm)
     u = ((rel @ right) / z / half_w + 1) / 2 * width
     v = (1 - (rel @ up) / z / half_h) / 2 * height
     return np.stack([u, v, z], axis=-1)

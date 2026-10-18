@@ -71,3 +71,13 @@ def test_rects_mask():
     pts = np.array([[5.0, 5.0], [-50.0, 5.0], [0.0, 5.0], [15.0, 30.0], [10.0 + 1e3, 5.0]])
     m = rects_mask(pts, [(0, 0, 10, 10), (12, 25, 20, 35)], feather=2.0)
     assert m[0] > 0.9 and m[1] < 0.01 and m[2] == pytest.approx(0.5) and m[3] > 0.8 and m[4] < 0.01
+
+
+def test_portrait_fits_the_sensor_to_the_height():
+    x, y = pixel_rays(576, 1024, 24.0)
+    assert y[0, 0] == pytest.approx(0.75 * (1 - 1 / 1024))       # 18 mm / 24 mm on the long side
+    assert x[0, -1] == pytest.approx(0.75 * 576 / 1024 * (1 - 1 / 576))
+    depth = np.random.default_rng(1).uniform(100, 5000, (64, 36))
+    uvz = project(unproject(depth, POS, TGT, 24.0), POS, TGT, 24.0, 36, 64)
+    u, v = np.meshgrid(np.arange(36) + 0.5, np.arange(64) + 0.5)
+    assert uvz[..., 0] == pytest.approx(u, abs=1e-6) and uvz[..., 1] == pytest.approx(v, abs=1e-6)

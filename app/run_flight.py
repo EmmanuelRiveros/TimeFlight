@@ -3,6 +3,7 @@ three generations, era merge, time wave, captions and credits -> one hero video.
 
   python app/run_flight.py --renders /content/place --results /content/flight_results
   python app/run_flight.py --dry-run          # print the inputs that would be set
+  python app/run_flight.py --preset teaser     # 9:16, 10 s (presets: hero, teaser, teaser_test)
 
 Needs ComfyUI on :8188 with the TimeFlight nodes installed (colab/setup_comfy.sh), comfy-api-proxy on
 :8189 and COMFY_BASE_URL=http://127.0.0.1:8189. Render folders are read by the TimeFlight nodes on the
@@ -20,19 +21,39 @@ from pathlib import Path, PurePosixPath
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "app"))
-from run_m0 import comfy_error, node_ids_by_title  # noqa: E402
+from run_m0 import check_size, comfy_error, node_ids_by_title  # noqa: E402
 
 WORKFLOW = REPO / "workflows" / "api" / "timeflight_flight_api.json"
 OUTPUTS = ("save", "save_present", "save_past_base", "save_past_zones")
+
+# Output formats. Times are seconds into the clip. Render folders come from blender/render_place.py
+# (+ scripts/make_control.py); the teaser flies the last 10 s of the hero path in portrait.
+PRESETS = {
+    "hero": dict(size=(1024, 576), frames=361, folders=("present_r1024_361", "1519_r1024_361"),
+                 wave=(3.5, 12.5), present_caption=(0.5, 3.3), past_caption=(12.0, 15.0), card_s=6.0),
+    "teaser": dict(size=(576, 1024), frames=241, folders=("present_v576x1024_241", "1519_v576x1024_241"),
+                   wave=(1.5, 7.0), present_caption=(0.2, 1.4), past_caption=(7.0, 10.0), card_s=4.0),
+    # Small end-to-end check of the portrait graph before the teaser (CLAUDE.md: test small first).
+    "teaser_test": dict(size=(320, 576), frames=49, folders=("present_v320x576_49", "1519_v320x576_49"),
+                        wave=(0.3, 1.5), present_caption=(0.0, 0.3), past_caption=(1.5, 2.0), card_s=1.0),
+}
 
 
 def plan(args) -> dict[tuple[str, str], object]:
     """(node title, input name) -> value."""
     texts = json.loads(args.prompts.read_text(encoding="utf-8"))["prompts"]
     place_dir = args.place_dir.as_posix()
+    pre = PRESETS[args.preset]
+    (w, h), n = pre["size"], pre["frames"]
+    check_size(w, h, n)
+    present_folder, era_folder = pre["folders"]
     values = {
-        ("present_pass", "render_dir"): (args.renders / args.present_folder).as_posix(),
-        ("past_pass", "render_dir"): (args.renders / args.era_folder).as_posix(),
+        ("present_pass", "render_dir"): (args.renders / (args.present_folder or present_folder)).as_posix(),
+        ("past_pass", "render_dir"): (args.renders / (args.era_folder or era_folder)).as_posix(),
+        ("time_wave", "start_s"): pre["wave"][0], ("time_wave", "end_s"): pre["wave"][1],
+        ("credits", "present_start_s"): pre["present_caption"][0], ("credits", "present_end_s"): pre["present_caption"][1],
+        ("credits", "past_start_s"): pre["past_caption"][0], ("credits", "past_end_s"): pre["past_caption"][1],
+        ("credits", "card_seconds"): pre["card_s"],
         ("present_prompt", "text"): texts[args.present_prompt],
         ("past_base_prompt", "text"): texts[args.past_base_prompt],
         ("past_zones_prompt", "text"): texts[args.past_zones_prompt],
@@ -42,6 +63,10 @@ def plan(args) -> dict[tuple[str, str], object]:
         ("save", "filename_prefix"): f"timeflight/flight/{args.name}",
     }
     for b in ("present", "past_base", "past_zones"):
+        values[(f"{b}_latent", "width")] = w
+        values[(f"{b}_latent", "height")] = h
+        values[(f"{b}_latent", "length")] = n
+        values[(f"{b}_audio_latent", "frames_number")] = n
         values[(f"{b}_seed", "noise_seed")] = args.seed
         values[(f"save_{b}", "filename_prefix")] = f"timeflight/flight/{args.name}_{b}"
     return values
@@ -50,8 +75,9 @@ def plan(args) -> dict[tuple[str, str], object]:
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--renders", type=PurePosixPath, default=PurePosixPath("/content/place"))
-    p.add_argument("--present-folder", default="present_r1024_361")
-    p.add_argument("--era-folder", default="1519_r1024_361")
+    p.add_argument("--preset", choices=sorted(PRESETS), default="hero")
+    p.add_argument("--present-folder", help="override the preset's present-day render folder")
+    p.add_argument("--era-folder", help="override the preset's era render folder")
     p.add_argument("--era", default="1519")
     p.add_argument("--place-dir", type=PurePosixPath, default=PurePosixPath("/content/TimeFlight/places/tenochtitlan_zocalo"),
                    help="places/<id> on the ComfyUI machine (manifest, place.json)")
@@ -60,11 +86,12 @@ def main() -> None:
     p.add_argument("--past-base-prompt", default="past_1519")
     p.add_argument("--past-zones-prompt", default="past_1519_plaza2")
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--name", default="hero_1519")
+    p.add_argument("--name", help="output name (default: <preset>_<era>)")
     p.add_argument("--results", type=Path, default=REPO / "out" / "flight")
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
 
+    args.name = args.name or f"{args.preset}_{args.era}"
     values = plan(args)
     ids = node_ids_by_title(json.loads(WORKFLOW.read_text()))
     missing = sorted({title for title, _ in values} - set(ids))
