@@ -9,7 +9,7 @@
 #   tex_mat      *_mat prompts (weathered/worn wording), strength 1.0   -> read as decay (run 11)
 #   tex_g08      current prompts, strength 0.8                          -> geometry drifts (run 11)
 #   tex_mat_g08  both
-#   tex_live     *_live prompts (lived-in wording, no decay words), strength 1.0
+#   tex_live     *_live prompts (lived-in wording, no decay words), strength 1.0 -> adds buildings (run 12)
 set -euo pipefail
 cd /content/TimeFlight
 VARIANTS=("$@")
