@@ -11,7 +11,7 @@
 #   tex_mat_g08  both
 #   tex_live     *_live prompts (lived-in wording, no decay words), strength 1.0 -> adds buildings (run 12)
 set -euo pipefail
-cd /content/TimeFlight
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 VARIANTS=("$@")
 [ ${#VARIANTS[@]} -gt 0 ] || VARIANTS=(tex_base tex_mat tex_g08 tex_mat_g08)
 prompts() { echo "--present-prompt present_2026_$1 --past-base-prompt past_1519_$1 --past-zones-prompt past_1519_plaza2_$1"; }
@@ -26,4 +26,4 @@ for v in "${VARIANTS[@]}"; do
   esac
   FLIGHT_ARGS="--name $v $extra" bash colab/flight.sh polish_inputs.zip hero_s2_test
 done
-grep tex_ /content/flight_results/runs.jsonl
+grep tex_ "${TF_WORK:-/content}/flight_results/runs.jsonl"

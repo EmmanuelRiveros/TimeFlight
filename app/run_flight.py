@@ -99,7 +99,7 @@ def main() -> None:
     p.add_argument("--present-folder", help="override the preset's present-day render folder")
     p.add_argument("--era-folder", help="override the preset's era render folder")
     p.add_argument("--era", default="1519")
-    p.add_argument("--place-dir", type=PurePosixPath, default=PurePosixPath("/content/TimeFlight/places/tenochtitlan_zocalo"),
+    p.add_argument("--place-dir", type=PurePosixPath, default=PurePosixPath(REPO.as_posix()) / "places" / "tenochtitlan_zocalo",
                    help="places/<id> on the ComfyUI machine (manifest, place.json)")
     p.add_argument("--prompts", type=Path, default=REPO / "places" / "tenochtitlan_zocalo" / "prompts.json")
     p.add_argument("--present-prompt", default="present_2026")

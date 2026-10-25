@@ -1,4 +1,6 @@
-"""Generate colab/timeflight_m0.ipynb (keeps the notebook diff-able: edit this file, not the .ipynb).
+"""Generate the Colab notebooks (keeps them diff-able: edit this file, not the .ipynb files).
+  colab/timeflight.ipynb      run TimeFlight: setup, models, a small test, then the 1080p hero
+  colab/timeflight_m0.ipynb   the full development log: M0 smoke test, M3, M4, polish and texture tests
 
   .venv/Scripts/python colab/make_notebook.py
 """
@@ -6,7 +8,7 @@
 import json
 from pathlib import Path
 
-CELLS = [
+M0_CELLS = [
     ("md", """# TimeFlight M0: aerial smoke test (go/no-go)
 Protocol and pass criteria: `docs/smoke_test.md`. **Hard cap: 10 GPU hours.** The timer cell prints the hours used.
 
@@ -127,6 +129,60 @@ gpu_hours()"""),
 ]
 
 
+RUN_CELLS = [
+    ("md", """# TimeFlight: a drone flight that turns back time
+Mexico City's historic centre today → Tenochtitlan in 1519, generated with LTX-2.5 in ComfyUI and guided by
+depth rendered from open geodata. Repo, licenses and how it works: https://github.com/EmmanuelRiveros/TimeFlight
+
+**You need:**
+1. An **A100 80GB** runtime (Runtime → Change runtime type). Smaller GPUs run out of memory on the 1080p hero.
+2. A Hugging Face token with access to the gated `Lightricks/LTX-2.5` and
+   `Lightricks/LTX-2.3-22b-IC-LoRA-Union-Control` repos (accept the LTX-2.x Community License on each model
+   page), saved as the Colab secret `HF_TOKEN`.
+3. The depth passes. Render them yourself (README, "Locally") and upload `polish2_inputs.zip` to
+   `MyDrive/timeflight/`, or set `INPUTS_URL` below to a published zip.
+
+Setup and model downloads take about 10 min (66 GB of weights). The small test takes about 4 min and the
+1080p hero about 35 min. The output is an illustrative AI reconstruction, not a historical record."""),
+    ("code", """!nvidia-smi --query-gpu=name,memory.total --format=csv
+import os, time; T0 = time.time()
+def gpu_hours(): print(f"GPU session time: {(time.time() - T0) / 3600:.2f} h")
+from google.colab import userdata
+os.environ["HF_TOKEN"] = userdata.get("HF_TOKEN")
+!test -d /content/TimeFlight && git -C /content/TimeFlight pull -q || git clone -q --depth 1 https://github.com/EmmanuelRiveros/TimeFlight /content/TimeFlight"""),
+    ("code", """# ComfyUI, ComfyUI-LTXVideo, Comfy SDK + proxy, the TimeFlight nodes; then the model weights
+!bash /content/TimeFlight/colab/setup_comfy.sh
+%cd /content/TimeFlight
+!python scripts/download_models.py --comfy-dir /content/ComfyUI --precision auto --with-upscaler
+os.environ["COMFY_BASE_URL"] = "http://127.0.0.1:8189"  # the SDK talks to ComfyUI through the local proxy
+!bash colab/start_servers.sh
+gpu_hours()"""),
+    ("code", """# Depth passes: a published zip (INPUTS_URL), or polish2_inputs.zip in MyDrive/timeflight/
+INPUTS_URL = ""
+if INPUTS_URL:
+    !mkdir -p /content/inputs && wget -q -O /content/inputs/polish2_inputs.zip "{INPUTS_URL}"
+    os.environ["TF_INPUTS"] = "/content/inputs"
+else:
+    from google.colab import drive
+    drive.mount("/content/drive")
+zip_path = os.path.join(os.environ.get("TF_INPUTS", "/content/drive/MyDrive/timeflight"), "polish2_inputs.zip")
+assert os.path.exists(zip_path), f"{zip_path} not found"
+print(zip_path, os.path.getsize(zip_path) // 2**20, "MB")"""),
+    ("md", """## Small test: 5 s at 1152×640
+Three generations (present day, the 1519 city, the 1519 dry zones), era merge, time wave, captions and
+credits, in one ComfyUI graph."""),
+    ("code", """!bash colab/flight.sh polish2_inputs.zip hero_s2_seams_test
+gpu_hours(); assert _exit_code == 0, "test failed: see the ComfyUI log above"
+from IPython.display import Video
+Video("/content/flight_results/hero_s2_seams_test_1519.mp4", embed=True, width=768)"""),
+    ("md", """## The hero: 15 s at 1920×1080, plus credits (about 35 min)"""),
+    ("code", """!bash colab/flight.sh polish2_inputs.zip hero_s2
+gpu_hours(); assert _exit_code == 0, "hero failed: see the ComfyUI log above"
+from google.colab import files
+files.download("/content/flight_results/hero_s2_1519.mp4")"""),
+]
+
+
 def cell(kind: str, src: str) -> dict:
     lines = src.splitlines(keepends=True)
     if kind == "md":
@@ -134,12 +190,17 @@ def cell(kind: str, src: str) -> dict:
     return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [], "source": lines}
 
 
-nb = {
-    "nbformat": 4, "nbformat_minor": 5,
-    "metadata": {"accelerator": "GPU", "colab": {"gpuType": "A100", "machine_shape": "hm"},
-                 "kernelspec": {"name": "python3", "display_name": "Python 3"}},
-    "cells": [cell(k, s) for k, s in CELLS],
-}
-out = Path(__file__).with_name("timeflight_m0.ipynb")
-out.write_text(json.dumps(nb, indent=1) + "\n", encoding="utf-8")
-print(f"wrote {out}")
+def write(name: str, cells: list[tuple[str, str]]) -> None:
+    nb = {
+        "nbformat": 4, "nbformat_minor": 5,
+        "metadata": {"accelerator": "GPU", "colab": {"gpuType": "A100", "machine_shape": "hm"},
+                     "kernelspec": {"name": "python3", "display_name": "Python 3"}},
+        "cells": [cell(k, s) for k, s in cells],
+    }
+    out = Path(__file__).with_name(name)
+    out.write_text(json.dumps(nb, indent=1) + "\n", encoding="utf-8")
+    print(f"wrote {out}")
+
+
+write("timeflight.ipynb", RUN_CELLS)
+write("timeflight_m0.ipynb", M0_CELLS)
