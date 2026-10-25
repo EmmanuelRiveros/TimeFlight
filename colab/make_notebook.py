@@ -139,8 +139,8 @@ depth rendered from open geodata. Repo, licenses and how it works: https://githu
 2. A Hugging Face token with access to the gated `Lightricks/LTX-2.5` and
    `Lightricks/LTX-2.3-22b-IC-LoRA-Union-Control` repos (accept the LTX-2.x Community License on each model
    page), saved as the Colab secret `HF_TOKEN`.
-3. The depth passes. Render them yourself (README, "Locally") and upload `polish2_inputs.zip` to
-   `MyDrive/timeflight/`, or set `INPUTS_URL` below to a published zip.
+3. Nothing else: the depth passes are downloaded from the repo's `inputs-v1` release. To use your own
+   renders (README, "Locally"), clear `INPUTS_URL` and upload `polish2_inputs.zip` to `MyDrive/timeflight/`.
 
 Setup and model downloads take about 10 min (66 GB of weights). The small test takes about 4 min and the
 1080p hero about 35 min. The output is an illustrative AI reconstruction, not a historical record."""),
@@ -157,8 +157,8 @@ os.environ["HF_TOKEN"] = userdata.get("HF_TOKEN")
 os.environ["COMFY_BASE_URL"] = "http://127.0.0.1:8189"  # the SDK talks to ComfyUI through the local proxy
 !bash colab/start_servers.sh
 gpu_hours()"""),
-    ("code", """# Depth passes: a published zip (INPUTS_URL), or polish2_inputs.zip in MyDrive/timeflight/
-INPUTS_URL = ""
+    ("code", """# Depth passes: the published zip (INPUTS_URL), or polish2_inputs.zip in MyDrive/timeflight/ if empty
+INPUTS_URL = "https://github.com/EmmanuelRiveros/TimeFlight/releases/download/inputs-v1/polish2_inputs.zip"
 if INPUTS_URL:
     !mkdir -p /content/inputs && wget -q -O /content/inputs/polish2_inputs.zip "{INPUTS_URL}"
     os.environ["TF_INPUTS"] = "/content/inputs"
