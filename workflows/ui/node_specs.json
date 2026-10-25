@@ -1,0 +1,1565 @@
+{
+ "CFGGuider": {
+  "input": {
+   "required": {
+    "model": [
+     "MODEL",
+     {}
+    ],
+    "positive": [
+     "CONDITIONING",
+     {}
+    ],
+    "negative": [
+     "CONDITIONING",
+     {}
+    ],
+    "cfg": [
+     "FLOAT",
+     {
+      "default": 8.0,
+      "min": 0.0,
+      "max": 100.0,
+      "step": 0.1,
+      "round": 0.01
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "model",
+    "positive",
+    "negative",
+    "cfg"
+   ]
+  },
+  "output": [
+   "GUIDER"
+  ],
+  "output_name": [
+   "GUIDER"
+  ],
+  "display_name": "CFG Guider"
+ },
+ "CLIPLoader": {
+  "input": {
+   "required": {
+    "clip_name": [
+     []
+    ],
+    "type": [
+     [
+      "stable_diffusion",
+      "stable_cascade",
+      "sd3",
+      "stable_audio",
+      "mochi",
+      "ltxv",
+      "pixart",
+      "cosmos",
+      "lumina2",
+      "wan",
+      "hidream",
+      "chroma",
+      "ace",
+      "omnigen2",
+      "qwen_image",
+      "hunyuan_image",
+      "flux2",
+      "ovis",
+      "longcat_image",
+      "cogvideox",
+      "lens",
+      "pixeldit",
+      "ideogram4",
+      "boogu",
+      "krea2"
+     ]
+    ]
+   },
+   "optional": {
+    "device": [
+     [
+      "default",
+      "cpu"
+     ],
+     {
+      "advanced": true
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "clip_name",
+    "type"
+   ],
+   "optional": [
+    "device"
+   ]
+  },
+  "output": [
+   "CLIP"
+  ],
+  "output_name": [
+   "CLIP"
+  ],
+  "display_name": "Load CLIP"
+ },
+ "CLIPTextEncode": {
+  "input": {
+   "required": {
+    "text": [
+     "STRING",
+     {
+      "multiline": true,
+      "dynamicPrompts": true,
+      "tooltip": "The text to be encoded."
+     }
+    ],
+    "clip": [
+     "CLIP",
+     {
+      "tooltip": "The CLIP model used for encoding the text."
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "text",
+    "clip"
+   ]
+  },
+  "output": [
+   "CONDITIONING"
+  ],
+  "output_name": [
+   "CONDITIONING"
+  ],
+  "display_name": "CLIP Text Encode (Prompt)"
+ },
+ "CreateVideo": {
+  "input": {
+   "required": {
+    "images": [
+     "IMAGE",
+     {
+      "tooltip": "The images to create a video from."
+     }
+    ],
+    "fps": [
+     "FLOAT",
+     {
+      "default": 30.0,
+      "min": 1.0,
+      "max": 120.0,
+      "step": 1.0
+     }
+    ]
+   },
+   "optional": {
+    "audio": [
+     "AUDIO",
+     {
+      "tooltip": "The audio to add to the video."
+     }
+    ],
+    "bit_depth": [
+     "INT",
+     {
+      "tooltip": "Bit depth of the created video. 10-bit keeps smoother gradients with less banding, but some players and downstream nodes may not support it.",
+      "default": 8,
+      "min": 8,
+      "max": 10,
+      "step": 2,
+      "display": "number"
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "images",
+    "fps"
+   ],
+   "optional": [
+    "audio",
+    "bit_depth"
+   ]
+  },
+  "output": [
+   "VIDEO"
+  ],
+  "output_name": [
+   "VIDEO"
+  ],
+  "display_name": "Create Video"
+ },
+ "EmptyLTXVLatentVideo": {
+  "input": {
+   "required": {
+    "width": [
+     "INT",
+     {
+      "default": 768,
+      "min": 64,
+      "max": 16384,
+      "step": 32
+     }
+    ],
+    "height": [
+     "INT",
+     {
+      "default": 512,
+      "min": 64,
+      "max": 16384,
+      "step": 32
+     }
+    ],
+    "length": [
+     "INT",
+     {
+      "default": 97,
+      "min": 1,
+      "max": 16384,
+      "step": 8
+     }
+    ],
+    "batch_size": [
+     "INT",
+     {
+      "default": 1,
+      "min": 1,
+      "max": 4096
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "width",
+    "height",
+    "length",
+    "batch_size"
+   ]
+  },
+  "output": [
+   "LATENT"
+  ],
+  "output_name": [
+   "LATENT"
+  ],
+  "display_name": null
+ },
+ "KSamplerSelect": {
+  "input": {
+   "required": {
+    "sampler_name": [
+     "COMBO",
+     {
+      "multiselect": false,
+      "options": [
+       "euler",
+       "euler_cfg_pp",
+       "euler_ancestral",
+       "euler_ancestral_cfg_pp",
+       "heun",
+       "heunpp2",
+       "exp_heun_2_x0",
+       "exp_heun_2_x0_sde",
+       "dpm_2",
+       "dpm_2_ancestral",
+       "lms",
+       "dpm_fast",
+       "dpm_adaptive",
+       "dpmpp_2s_ancestral",
+       "dpmpp_2s_ancestral_cfg_pp",
+       "dpmpp_sde",
+       "dpmpp_sde_gpu",
+       "dpmpp_2m",
+       "dpmpp_2m_cfg_pp",
+       "dpmpp_2m_sde",
+       "dpmpp_2m_sde_gpu",
+       "dpmpp_2m_sde_heun",
+       "dpmpp_2m_sde_heun_gpu",
+       "dpmpp_3m_sde",
+       "dpmpp_3m_sde_gpu",
+       "ddpm",
+       "lcm",
+       "ipndm",
+       "ipndm_v",
+       "deis",
+       "res_multistep",
+       "res_multistep_cfg_pp",
+       "res_multistep_ancestral",
+       "res_multistep_ancestral_cfg_pp",
+       "gradient_estimation",
+       "gradient_estimation_cfg_pp",
+       "er_sde",
+       "seeds_2",
+       "seeds_3",
+       "sa_solver",
+       "sa_solver_pece",
+       "ddim",
+       "uni_pc",
+       "uni_pc_bh2"
+      ]
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "sampler_name"
+   ]
+  },
+  "output": [
+   "SAMPLER"
+  ],
+  "output_name": [
+   "SAMPLER"
+  ],
+  "display_name": null
+ },
+ "LTXAddVideoICLoRAGuide": {
+  "input": {
+   "required": {
+    "positive": [
+     "CONDITIONING",
+     {}
+    ],
+    "negative": [
+     "CONDITIONING",
+     {}
+    ],
+    "vae": [
+     "VAE",
+     {}
+    ],
+    "latent": [
+     "LATENT",
+     {
+      "tooltip": "Video-only latent to condition. Must be a 5D video latent (batch, channels, frames, height, width)."
+     }
+    ],
+    "image": [
+     "IMAGE",
+     {}
+    ],
+    "frame_idx": [
+     "INT",
+     {
+      "tooltip": "RoPE position of the reference, in pixel frames.\n0 aligns the reference with the generated clip. Use for video references.\n>0 places the reference at a specific pixel-frame position in the clip.\n-1 places the reference outside the generated frame range, while still using it for attention conditioning. Use for single-image references.\nFor multi-frame references, >0 values are rounded down to 1 mod 8.",
+      "default": 0,
+      "min": -9999,
+      "max": 9999
+     }
+    ],
+    "strength": [
+     "FLOAT",
+     {
+      "default": 1.0,
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+     }
+    ],
+    "latent_downscale_factor": [
+     "FLOAT",
+     {
+      "tooltip": "For IC-LoRA on small grid. 1 means original size, 2 means half size, 3 means third, etc.",
+      "default": 1.0,
+      "min": 1.0,
+      "max": 10.0,
+      "step": 1.0
+     }
+    ],
+    "crop": [
+     "COMBO",
+     {
+      "tooltip": "Crop mode when resizing. 'center' crops to fit, 'disabled' stretches to fit.",
+      "default": "disabled",
+      "multiselect": false,
+      "options": [
+       "disabled",
+       "center"
+      ]
+     }
+    ],
+    "use_tiled_encode": [
+     "BOOLEAN",
+     {
+      "tooltip": "Enable tiled VAE encoding for large resolutions/long videos to reduce memory usage.",
+      "default": false
+     }
+    ],
+    "tile_size": [
+     "INT",
+     {
+      "tooltip": "Spatial tile size for tiled encoding. Only used when use_tiled_encode is enabled.",
+      "default": 256,
+      "min": 64,
+      "max": 512,
+      "step": 32
+     }
+    ],
+    "tile_overlap": [
+     "INT",
+     {
+      "tooltip": "Overlap between tiles for tiled encoding. Only used when use_tiled_encode is enabled.",
+      "default": 64,
+      "min": 16,
+      "max": 256,
+      "step": 16
+     }
+    ]
+   },
+   "optional": {
+    "use_streaming": [
+     "BOOLEAN",
+     {
+      "tooltip": "Off (default): encode the whole clip as one IC-LoRA guide. On: re-encode one fresh guide per LTXVTiledFusionSampler temporal window and write the plan the sampler reads. Set tile_frames on this node and the sampler to the same value (97 for LTX).",
+      "default": false
+     }
+    ],
+    "tile_frames": [
+     "INT",
+     {
+      "tooltip": "Window length in pixel frames, used only when use_streaming is on. Snapped to 8n+1. Must match LTXVTiledFusionSampler. Ignored when use_streaming is off.",
+      "default": 97,
+      "min": 0,
+      "max": 1000,
+      "step": 1
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "positive",
+    "negative",
+    "vae",
+    "latent",
+    "image",
+    "frame_idx",
+    "strength",
+    "latent_downscale_factor",
+    "crop",
+    "use_tiled_encode",
+    "tile_size",
+    "tile_overlap"
+   ],
+   "optional": [
+    "use_streaming",
+    "tile_frames"
+   ]
+  },
+  "output": [
+   "CONDITIONING",
+   "CONDITIONING",
+   "LATENT"
+  ],
+  "output_name": [
+   "positive",
+   "negative",
+   "latent"
+  ],
+  "display_name": "\ud83c\udd5b\ud83c\udd63\ud83c\udd67 Add Video IC-LoRA Guide"
+ },
+ "LTXICLoRALoaderModelOnly": {
+  "input": {
+   "required": {
+    "model": [
+     "MODEL",
+     {}
+    ],
+    "lora_name": [
+     "COMBO",
+     {
+      "multiselect": false,
+      "options": []
+     }
+    ],
+    "strength_model": [
+     "FLOAT",
+     {
+      "default": 1.0,
+      "min": -100.0,
+      "max": 100.0,
+      "step": 0.01
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "model",
+    "lora_name",
+    "strength_model"
+   ]
+  },
+  "output": [
+   "MODEL",
+   "FLOAT"
+  ],
+  "output_name": [
+   "model",
+   "latent_downscale_factor"
+  ],
+  "display_name": "\ud83c\udd5b\ud83c\udd63\ud83c\udd67 IC-LoRA Loader Model Only"
+ },
+ "LTXVAudioVAEDecode": {
+  "input": {
+   "required": {
+    "samples": [
+     "LATENT",
+     {
+      "tooltip": "The latent to be decoded."
+     }
+    ],
+    "audio_vae": [
+     "VAE",
+     {
+      "display_name": "Audio VAE",
+      "tooltip": "The Audio VAE model used for decoding the latent."
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "samples",
+    "audio_vae"
+   ]
+  },
+  "output": [
+   "AUDIO"
+  ],
+  "output_name": [
+   "Audio"
+  ],
+  "display_name": "LTXV Audio VAE Decode"
+ },
+ "LTXVConcatAVLatent": {
+  "input": {
+   "required": {
+    "video_latent": [
+     "LATENT",
+     {}
+    ],
+    "audio_latent": [
+     "LATENT",
+     {}
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "video_latent",
+    "audio_latent"
+   ]
+  },
+  "output": [
+   "LATENT"
+  ],
+  "output_name": [
+   "latent"
+  ],
+  "display_name": null
+ },
+ "LTXVConditioning": {
+  "input": {
+   "required": {
+    "positive": [
+     "CONDITIONING",
+     {}
+    ],
+    "negative": [
+     "CONDITIONING",
+     {}
+    ],
+    "frame_rate": [
+     "FLOAT",
+     {
+      "default": 25.0,
+      "min": 0.0,
+      "max": 1000.0,
+      "step": 0.01
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "positive",
+    "negative",
+    "frame_rate"
+   ]
+  },
+  "output": [
+   "CONDITIONING",
+   "CONDITIONING"
+  ],
+  "output_name": [
+   "positive",
+   "negative"
+  ],
+  "display_name": null
+ },
+ "LTXVCropGuides": {
+  "input": {
+   "required": {
+    "positive": [
+     "CONDITIONING",
+     {}
+    ],
+    "negative": [
+     "CONDITIONING",
+     {}
+    ],
+    "latent": [
+     "LATENT",
+     {}
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "positive",
+    "negative",
+    "latent"
+   ]
+  },
+  "output": [
+   "CONDITIONING",
+   "CONDITIONING",
+   "LATENT"
+  ],
+  "output_name": [
+   "positive",
+   "negative",
+   "latent"
+  ],
+  "display_name": null
+ },
+ "LTXVEmptyLatentAudio": {
+  "input": {
+   "required": {
+    "frames_number": [
+     "INT",
+     {
+      "tooltip": "Number of frames.",
+      "default": 97,
+      "min": 1,
+      "max": 1000,
+      "step": 1,
+      "display": "number"
+     }
+    ],
+    "frame_rate": [
+     "INT",
+     {
+      "tooltip": "Number of frames per second.",
+      "default": 25,
+      "min": 1,
+      "max": 1000,
+      "step": 1,
+      "display": "number"
+     }
+    ],
+    "batch_size": [
+     "INT",
+     {
+      "tooltip": "The number of latent audio samples in the batch.",
+      "default": 1,
+      "min": 1,
+      "max": 4096,
+      "display": "number"
+     }
+    ],
+    "audio_vae": [
+     "VAE",
+     {
+      "display_name": "Audio VAE",
+      "tooltip": "The Audio VAE model to get configuration from."
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "frames_number",
+    "frame_rate",
+    "batch_size",
+    "audio_vae"
+   ]
+  },
+  "output": [
+   "LATENT"
+  ],
+  "output_name": [
+   "Latent"
+  ],
+  "display_name": "LTXV Empty Latent Audio"
+ },
+ "LTXVLatentUpsampler": {
+  "input": {
+   "required": {
+    "samples": [
+     "LATENT",
+     {}
+    ],
+    "upscale_model": [
+     "LATENT_UPSCALE_MODEL",
+     {}
+    ],
+    "vae": [
+     "VAE",
+     {}
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "samples",
+    "upscale_model",
+    "vae"
+   ]
+  },
+  "output": [
+   "LATENT"
+  ],
+  "output_name": [
+   "LATENT"
+  ],
+  "display_name": null
+ },
+ "LTXVSeparateAVLatent": {
+  "input": {
+   "required": {
+    "av_latent": [
+     "LATENT",
+     {}
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "av_latent"
+   ]
+  },
+  "output": [
+   "LATENT",
+   "LATENT"
+  ],
+  "output_name": [
+   "video_latent",
+   "audio_latent"
+  ],
+  "display_name": null
+ },
+ "LatentUpscaleModelLoader": {
+  "input": {
+   "required": {
+    "model_name": [
+     "COMBO",
+     {
+      "multiselect": false,
+      "options": []
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "model_name"
+   ]
+  },
+  "output": [
+   "LATENT_UPSCALE_MODEL"
+  ],
+  "output_name": [
+   "LATENT_UPSCALE_MODEL"
+  ],
+  "display_name": "Load Latent Upscale Model"
+ },
+ "ManualSigmas": {
+  "input": {
+   "required": {
+    "sigmas": [
+     "STRING",
+     {
+      "default": "1, 0.5",
+      "multiline": false
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "sigmas"
+   ]
+  },
+  "output": [
+   "SIGMAS"
+  ],
+  "output_name": [
+   "SIGMAS"
+  ],
+  "display_name": null
+ },
+ "RandomNoise": {
+  "input": {
+   "required": {
+    "noise_seed": [
+     "INT",
+     {
+      "default": 0,
+      "min": 0,
+      "max": 18446744073709551615,
+      "control_after_generate": true
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "noise_seed"
+   ]
+  },
+  "output": [
+   "NOISE"
+  ],
+  "output_name": [
+   "NOISE"
+  ],
+  "display_name": null
+ },
+ "SamplerCustomAdvanced": {
+  "input": {
+   "required": {
+    "noise": [
+     "NOISE",
+     {}
+    ],
+    "guider": [
+     "GUIDER",
+     {}
+    ],
+    "sampler": [
+     "SAMPLER",
+     {}
+    ],
+    "sigmas": [
+     "SIGMAS",
+     {}
+    ],
+    "latent_image": [
+     "LATENT",
+     {}
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "noise",
+    "guider",
+    "sampler",
+    "sigmas",
+    "latent_image"
+   ]
+  },
+  "output": [
+   "LATENT",
+   "LATENT"
+  ],
+  "output_name": [
+   "output",
+   "denoised_output"
+  ],
+  "display_name": null
+ },
+ "SaveVideo": {
+  "input": {
+   "required": {
+    "video": [
+     "VIDEO",
+     {
+      "tooltip": "The video to save."
+     }
+    ],
+    "filename_prefix": [
+     "STRING",
+     {
+      "tooltip": "The prefix for the file to save. This may include formatting information such as %date:yyyy-MM-dd% or %Empty Latent Image.width% to include values from nodes.",
+      "default": "video/ComfyUI",
+      "multiline": false
+     }
+    ],
+    "format": [
+     "COMBO",
+     {
+      "tooltip": "The format to save the video as.",
+      "default": "auto",
+      "multiselect": false,
+      "options": [
+       "auto",
+       "mp4"
+      ]
+     }
+    ],
+    "codec": [
+     "COMBO",
+     {
+      "tooltip": "The codec to use for the video.",
+      "default": "auto",
+      "multiselect": false,
+      "options": [
+       "auto",
+       "h264"
+      ]
+     }
+    ]
+   },
+   "hidden": {
+    "prompt": [
+     "PROMPT"
+    ],
+    "extra_pnginfo": [
+     "EXTRA_PNGINFO"
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "video",
+    "filename_prefix",
+    "format",
+    "codec"
+   ],
+   "hidden": [
+    "prompt",
+    "extra_pnginfo"
+   ]
+  },
+  "output": [
+   "VIDEO"
+  ],
+  "output_name": [
+   "video"
+  ],
+  "display_name": "Save Video"
+ },
+ "TimeFlightAudioMix": {
+  "input": {
+   "required": {
+    "images": [
+     "IMAGE"
+    ],
+    "present": [
+     "AUDIO"
+    ],
+    "past": [
+     "AUDIO"
+    ],
+    "fps": [
+     "FLOAT",
+     {
+      "default": 24.0,
+      "min": 1.0,
+      "max": 120.0,
+      "step": 1.0
+     }
+    ],
+    "flight_frames": [
+     "INT",
+     {
+      "default": 361,
+      "min": 1,
+      "max": 100000
+     }
+    ],
+    "start_s": [
+     "FLOAT",
+     {
+      "default": 3.5,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "end_s": [
+     "FLOAT",
+     {
+      "default": 12.5,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "fade_out_s": [
+     "FLOAT",
+     {
+      "default": 1.5,
+      "min": 0.0,
+      "max": 60.0,
+      "step": 0.1
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "images",
+    "present",
+    "past",
+    "fps",
+    "flight_frames",
+    "start_s",
+    "end_s",
+    "fade_out_s"
+   ]
+  },
+  "output": [
+   "AUDIO"
+  ],
+  "output_name": [
+   "audio"
+  ],
+  "display_name": "TimeFlight: Audio Crossfade"
+ },
+ "TimeFlightCredits": {
+  "input": {
+   "required": {
+    "images": [
+     "IMAGE"
+    ],
+    "place_dir": [
+     "STRING",
+     {
+      "default": "/content/TimeFlight/places/tenochtitlan_zocalo"
+     }
+    ],
+    "era": [
+     "STRING",
+     {
+      "default": "1519"
+     }
+    ],
+    "fps": [
+     "FLOAT",
+     {
+      "default": 24.0,
+      "min": 1.0,
+      "max": 120.0,
+      "step": 1.0
+     }
+    ],
+    "present_caption": [
+     "STRING",
+     {
+      "default": "Mexico City, today"
+     }
+    ],
+    "present_start_s": [
+     "FLOAT",
+     {
+      "default": 0.5,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "present_end_s": [
+     "FLOAT",
+     {
+      "default": 3.3,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "past_caption": [
+     "STRING",
+     {
+      "default": ""
+     }
+    ],
+    "past_start_s": [
+     "FLOAT",
+     {
+      "default": 12.0,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "past_end_s": [
+     "FLOAT",
+     {
+      "default": 15.0,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "card_seconds": [
+     "FLOAT",
+     {
+      "default": 6.0,
+      "min": 0.0,
+      "max": 60.0,
+      "step": 0.1
+     }
+    ],
+    "allow_draft": [
+     "BOOLEAN",
+     {
+      "default": false
+     }
+    ]
+   },
+   "optional": {
+    "width": [
+     "INT",
+     {
+      "default": 0,
+      "min": 0,
+      "max": 8192
+     }
+    ],
+    "height": [
+     "INT",
+     {
+      "default": 0,
+      "min": 0,
+      "max": 8192
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "images",
+    "place_dir",
+    "era",
+    "fps",
+    "present_caption",
+    "present_start_s",
+    "present_end_s",
+    "past_caption",
+    "past_start_s",
+    "past_end_s",
+    "card_seconds",
+    "allow_draft"
+   ],
+   "optional": [
+    "width",
+    "height"
+   ]
+  },
+  "output": [
+   "IMAGE",
+   "STRING"
+  ],
+  "output_name": [
+   "images",
+   "credits_markdown"
+  ],
+  "display_name": "TimeFlight: Captions and Credits"
+ },
+ "TimeFlightEraMerge": {
+  "input": {
+   "required": {
+    "base": [
+     "IMAGE"
+    ],
+    "zones": [
+     "IMAGE"
+    ],
+    "era_pass": [
+     "TF_PASS"
+    ],
+    "place_dir": [
+     "STRING",
+     {
+      "default": "/content/TimeFlight/places/tenochtitlan_zocalo"
+     }
+    ],
+    "era": [
+     "STRING",
+     {
+      "default": "1519"
+     }
+    ],
+    "feather_m": [
+     "FLOAT",
+     {
+      "default": 6.0,
+      "min": 0.1,
+      "max": 100.0,
+      "step": 0.5
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "base",
+    "zones",
+    "era_pass",
+    "place_dir",
+    "era",
+    "feather_m"
+   ]
+  },
+  "output": [
+   "IMAGE"
+  ],
+  "output_name": [
+   "images"
+  ],
+  "display_name": "TimeFlight: Era Zone Merge"
+ },
+ "TimeFlightLoadPass": {
+  "input": {
+   "required": {
+    "render_dir": [
+     "STRING",
+     {
+      "default": "/content/place/present_r1024_361"
+     }
+    ]
+   },
+   "optional": {
+    "camera_json": [
+     "STRING",
+     {
+      "default": ""
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "render_dir"
+   ],
+   "optional": [
+    "camera_json"
+   ]
+  },
+  "output": [
+   "TF_PASS",
+   "IMAGE",
+   "INT",
+   "FLOAT"
+  ],
+  "output_name": [
+   "render_pass",
+   "depth_control",
+   "frames",
+   "fps"
+  ],
+  "display_name": "TimeFlight: Load Render Pass"
+ },
+ "TimeFlightTimeWave": {
+  "input": {
+   "required": {
+    "present": [
+     "IMAGE"
+    ],
+    "past": [
+     "IMAGE"
+    ],
+    "present_pass": [
+     "TF_PASS"
+    ],
+    "past_pass": [
+     "TF_PASS"
+    ],
+    "place_dir": [
+     "STRING",
+     {
+      "default": "/content/TimeFlight/places/tenochtitlan_zocalo"
+     }
+    ],
+    "era": [
+     "STRING",
+     {
+      "default": "1519"
+     }
+    ],
+    "fps": [
+     "FLOAT",
+     {
+      "default": 24.0,
+      "min": 1.0,
+      "max": 120.0,
+      "step": 1.0
+     }
+    ],
+    "start_s": [
+     "FLOAT",
+     {
+      "default": 3.5,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "end_s": [
+     "FLOAT",
+     {
+      "default": 12.5,
+      "min": 0.0,
+      "max": 600.0,
+      "step": 0.1
+     }
+    ],
+    "r0_m": [
+     "FLOAT",
+     {
+      "default": 30.0,
+      "min": 1.0,
+      "max": 1000.0,
+      "step": 1.0
+     }
+    ],
+    "r1_m": [
+     "FLOAT",
+     {
+      "default": 15000.0,
+      "min": 100.0,
+      "max": 100000.0,
+      "step": 100.0
+     }
+    ],
+    "softness_m": [
+     "FLOAT",
+     {
+      "default": 25.0,
+      "min": 0.5,
+      "max": 500.0,
+      "step": 0.5
+     }
+    ],
+    "glow": [
+     "FLOAT",
+     {
+      "default": 0.6,
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.05
+     }
+    ],
+    "glow_fade_m": [
+     "FLOAT",
+     {
+      "default": 80.0,
+      "min": 0.0,
+      "max": 2000.0,
+      "step": 10.0
+     }
+    ]
+   },
+   "optional": {
+    "curtain": [
+     "FLOAT",
+     {
+      "default": 0.0,
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.05
+     }
+    ],
+    "curtain_height_m": [
+     "FLOAT",
+     {
+      "default": 80.0,
+      "min": 1.0,
+      "max": 1000.0,
+      "step": 5.0
+     }
+    ],
+    "curtain_width_m": [
+     "FLOAT",
+     {
+      "default": 30.0,
+      "min": 1.0,
+      "max": 500.0,
+      "step": 5.0
+     }
+    ],
+    "curtain_far_m": [
+     "FLOAT",
+     {
+      "default": 4000.0,
+      "min": 100.0,
+      "max": 100000.0,
+      "step": 100.0
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "present",
+    "past",
+    "present_pass",
+    "past_pass",
+    "place_dir",
+    "era",
+    "fps",
+    "start_s",
+    "end_s",
+    "r0_m",
+    "r1_m",
+    "softness_m",
+    "glow",
+    "glow_fade_m"
+   ],
+   "optional": [
+    "curtain",
+    "curtain_height_m",
+    "curtain_width_m",
+    "curtain_far_m"
+   ]
+  },
+  "output": [
+   "IMAGE"
+  ],
+  "output_name": [
+   "images"
+  ],
+  "display_name": "TimeFlight: Time Wave"
+ },
+ "UNETLoader": {
+  "input": {
+   "required": {
+    "unet_name": [
+     []
+    ],
+    "weight_dtype": [
+     [
+      "default",
+      "fp8_e4m3fn",
+      "fp8_e4m3fn_fast",
+      "fp8_e5m2"
+     ],
+     {
+      "advanced": true
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "unet_name",
+    "weight_dtype"
+   ]
+  },
+  "output": [
+   "MODEL"
+  ],
+  "output_name": [
+   "MODEL"
+  ],
+  "display_name": "Load Diffusion Model"
+ },
+ "VAEDecodeTiled": {
+  "input": {
+   "required": {
+    "samples": [
+     "LATENT"
+    ],
+    "vae": [
+     "VAE"
+    ],
+    "tile_size": [
+     "INT",
+     {
+      "default": 512,
+      "min": 64,
+      "max": 4096,
+      "step": 32,
+      "advanced": true
+     }
+    ],
+    "overlap": [
+     "INT",
+     {
+      "default": 64,
+      "min": 0,
+      "max": 4096,
+      "step": 32,
+      "advanced": true
+     }
+    ],
+    "temporal_size": [
+     "INT",
+     {
+      "default": 64,
+      "min": 8,
+      "max": 4096,
+      "step": 4,
+      "tooltip": "Only used for video VAEs: Amount of frames to decode at a time.",
+      "advanced": true
+     }
+    ],
+    "temporal_overlap": [
+     "INT",
+     {
+      "default": 8,
+      "min": 4,
+      "max": 4096,
+      "step": 4,
+      "tooltip": "Only used for video VAEs: Amount of frames to overlap.",
+      "advanced": true
+     }
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "samples",
+    "vae",
+    "tile_size",
+    "overlap",
+    "temporal_size",
+    "temporal_overlap"
+   ]
+  },
+  "output": [
+   "IMAGE"
+  ],
+  "output_name": [
+   "IMAGE"
+  ],
+  "display_name": "VAE Decode (Tiled)"
+ },
+ "VAELoader": {
+  "input": {
+   "required": {
+    "vae_name": [
+     [
+      "pixel_space"
+     ]
+    ]
+   }
+  },
+  "input_order": {
+   "required": [
+    "vae_name"
+   ]
+  },
+  "output": [
+   "VAE"
+  ],
+  "output_name": [
+   "VAE"
+  ],
+  "display_name": "Load VAE"
+ }
+}

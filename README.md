@@ -66,6 +66,11 @@ place.json (lat/lon/alt keyframes)    eras/1519.json (proxies + sources + licens
 Everything runs as one ComfyUI API graph driven through the Comfy SDK (`comfy-sdk` → `comfy-api-proxy`
 → ComfyUI).
 
+To see the graph, drag [`workflows/ui/timeflight_hero.json`](workflows/ui/timeflight_hero.json) onto the
+ComfyUI canvas (it needs ComfyUI-LTXVideo and the TimeFlight node pack). It is the 1080p hero graph,
+82 nodes in groups with notes, generated from the same builder by `workflows/build_ui.py`, with the
+hero's prompts and timings filled in.
+
 ## ComfyUI nodes (`comfy_nodes/`)
 
 | Node | What it does |
@@ -216,7 +221,7 @@ IC-LoRA are under a revenue-gated license.
 | `timeflight/` | Pure-Python core: geo math, era manifests, provenance and credits, time wave, era merge, audio mix, metrics (Apache-2.0) |
 | `comfy_nodes/` | The ComfyUI-TimeFlight node pack |
 | `blender/` | Headless Blender scripts, **GPL-3.0**, always run as `blender -b -P …` subprocesses |
-| `workflows/` | API-graph builders, plus the generated graphs in `workflows/api/` |
+| `workflows/` | Graph builders: API format in `workflows/api/` (run by the SDK), canvas format in `workflows/ui/` (open in ComfyUI) |
 | `app/` | Comfy SDK drivers (`run_flight.py`) |
 | `colab/` | Setup and run scripts for the GPU machine, and the notebook generator |
 | `places/` | Per-place camera paths, prompts, era manifests and generated credits |
