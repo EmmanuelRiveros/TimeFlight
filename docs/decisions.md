@@ -55,10 +55,9 @@ This file overrides `docs/research.md`. Newest entries go at the bottom of each 
 | OSM extract | Geofabrik `north-america/mexico-latest.osm.pbf`, 617 MB, data to 2026-10-15T20:21Z, ODbL 1.0, md5 checked. Historic centre: 7220 footprints, 95% without height or levels (default 9 m). Landmarks with heights: Catedral 67 m (towers; parts: dome 55 m, naves 40 m), Bellas Artes 53 m, Torre Latinoamericana parts up to 182 m. Templo Mayor: 19.43489, −99.13172. | download.geofabrik.de; extracted locally |
 | Libraries | rasterio 1.4.4 (BSD-3, bundles GDAL), pyosmium 4.3.1 (BSD-2). Both are only used by `scripts/`. | PyPI |
 | Asset upload via proxy | `client.assets.from_file` with core `LoadVideo` works through comfy-api-proxy (M0 run 2 used it). | M0 run 2 |
+| Self-hosted ComfyUI qualifies (checked 2026-10-27) | The challenge rules allow running ComfyUI "entirely local, Comfy Cloud, the Developer Platform, Comfy Router, the Comfy SDK, or any mix". | Challenge rules, section 2 (App requirements) |
 
 ## Not yet verified (open)
-- Gemma 4 license terms (text encoder) — **must verify before M5**.
-- Whether self-hosted ComfyUI driven through comfy-sdk qualifies (author is asking on Discord).
 - Comfy int8 filenames in the LTX-2.5 repo (`scripts/download_models.py` lists the repo and picks by pattern).
 - Depth-Anything-V2-Small license (believed Apache-2.0; Base/Large are CC BY-NC). Used only to compute metrics, never in the pipeline.
 - Licenses of Piper voices (only relevant if narration returns).
