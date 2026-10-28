@@ -10,9 +10,9 @@ and LTX-2.5 video generation guided by depth. Every source behind the reconstruc
 asset and model it uses, appears in the credits with its license. The credits are generated from
 the same manifest that builds the geometry.
 
-[![TimeFlight demo video: the time wave spreading over Mexico City's historic centre](docs/img/hero_wave.jpg)](https://www.youtube.com/watch?v=sHFnbCp49K0)
+[![TimeFlight demo video: the time wave spreading over Mexico City's historic centre](docs/img/hero_wave.jpg)](https://www.youtube.com/watch?v=WhXBesU-9io)
 
-**▶ [Watch the demo video (1:54)](https://www.youtube.com/watch?v=sHFnbCp49K0)**
+**▶ [Watch the demo video (1:58)](https://www.youtube.com/watch?v=WhXBesU-9io)**
 
 > Entry for the Comfy "Open Source Higgsfield" challenge (October 2026), category Most Innovative,
 > with the LTX VFX bonus.
